@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 960" role="img" aria-labelledby="title description">
+  <title id="title">Introduction video poster</title>
+  <desc id="description">A blue and white placeholder poster for Kristina Panovska's introduction video.</desc>
+  <rect width="540" height="960" fill="#eef4fb"/>
+  <circle cx="270" cy="335" r="166" fill="#dce8f5"/>
+  <circle cx="270" cy="284" r="64" fill="#608abf"/>
+  <path d="M158 452c18-82 63-123 112-123s94 41 112 123" fill="#608abf"/>
+  <rect x="180" y="570" width="180" height="2" rx="1" fill="#b7cce4"/>
+  <text x="270" y="630" fill="#334155" font-family="Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="3" text-anchor="middle">KRISTINA PANOVSKA</text>
+  <text x="270" y="672" fill="#475569" font-family="Arial, sans-serif" font-size="17" text-anchor="middle">Personal introduction</text>
+  <circle cx="270" cy="790" r="39" fill="#fff"/>
+  <path d="M261 768v44l36-22z" fill="#456d9d"/>
+</svg>
