@@ -45,7 +45,8 @@ an authenticated user cannot grant themselves administrator access.
 - Authenticated non-admin users receive the same public reads and cannot modify
   portfolio content or upload files.
 - Administrators are checked against `public.user_roles` by the
-  `public.is_admin()` security-definer function.
+  `private.is_admin()` security-definer function. The `private` schema is not
+  exposed through the Supabase Data API.
 - The `portfolio-assets` bucket is public so published portfolio media can be
   displayed without sign-in. Its upload, replacement and deletion policies
   require the administrator role. Do not store private drafts or confidential

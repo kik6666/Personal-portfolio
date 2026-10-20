@@ -1,3 +1,4 @@
+-- Applied to Supabase as migration version 20261019131928.
 create table public.user_roles (
   user_id uuid primary key references auth.users (id) on delete cascade,
   role text not null check (role in ('admin')),
@@ -226,8 +227,6 @@ on conflict (id) do update
 set public = excluded.public,
     file_size_limit = excluded.file_size_limit,
     allowed_mime_types = excluded.allowed_mime_types;
-
-alter table storage.objects enable row level security;
 
 create policy "Public can read portfolio assets"
   on storage.objects
