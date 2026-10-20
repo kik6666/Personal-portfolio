@@ -1,15 +1,17 @@
 import avatarVideo from '../../../virtual_avatar_video_home_page/Avatar Video_1080p.mp4?url'
-import { profile } from '../content.js'
-import { escapeHtml, headlineMarkup, mountSite } from '../site.js'
+import { getPublicContactLinks } from '../services/contact-links.js'
+import { getPublicSiteContent } from '../services/site-content.js'
+import { mountSite } from '../site.js'
+import { readProfile, renderContactCards, renderHeadline, statusMessage } from './home-content.js'
 
 mountSite('home')
 
 document.querySelector('#main-content').innerHTML = `
   <section class="home-hero" aria-labelledby="intro-title">
     <p class="eyebrow">Personal portfolio &amp; interactive CV</p>
-    <h1 id="intro-title">${escapeHtml(profile.name)}</h1>
-    <p class="hero-role">${headlineMarkup()}</p>
-    <p class="hero-description">${escapeHtml(profile.introduction)}</p>
+    <h1 id="intro-title">Welcome</h1>
+    <p class="hero-role" hidden></p>
+    <p class="hero-description" role="status">Loading profile…</p>
     <figure class="avatar-video-card">
       <video class="avatar-video" controls playsinline preload="metadata" poster="/assets/avatar-poster.svg" aria-label="Introduction video featuring Kristina's virtual avatar">
         <source src="${avatarVideo}" type="video/mp4" />
@@ -37,22 +39,7 @@ document.querySelector('#main-content').innerHTML = `
       </div>
       <p class="section-note">Choose the channel that works best for you.</p>
     </div>
-    <div class="row g-3">
-      <div class="col-12 col-sm-6">
-        <a class="contact-card" href="mailto:${escapeHtml(profile.email)}">
-          <span class="contact-icon"><i class="bi bi-envelope" aria-hidden="true"></i></span>
-          <span><strong>Email</strong><small>${escapeHtml(profile.email)}</small></span>
-          <i class="bi bi-arrow-up-right contact-arrow" aria-hidden="true"></i>
-        </a>
-      </div>
-      <div class="col-12 col-sm-6">
-        <a class="contact-card" href="${escapeHtml(profile.linkedinUrl)}" target="_blank" rel="noopener noreferrer">
-          <span class="contact-icon"><i class="bi bi-linkedin" aria-hidden="true"></i></span>
-          <span><strong>LinkedIn</strong><small>Connect professionally</small></span>
-          <i class="bi bi-arrow-up-right contact-arrow" aria-hidden="true"></i>
-        </a>
-      </div>
-    </div>
+    <div class="row g-3" id="contact-links" aria-live="polite"></div>
   </section>
 
   <section class="explore-section" aria-labelledby="explore-title">
@@ -99,3 +86,61 @@ const video = document.querySelector('.avatar-video')
 video.addEventListener('error', () => {
   document.querySelector('.video-error').hidden = false
 })
+
+const title = document.querySelector('#intro-title')
+const role = document.querySelector('.hero-role')
+const description = document.querySelector('.hero-description')
+const contactList = document.querySelector('#contact-links')
+
+function renderIntro(siteContent) {
+  const { name, headline, introduction } = readProfile(siteContent)
+  title.textContent = name || 'Welcome'
+  renderHeadline(role, headline)
+  description.removeAttribute('role')
+  description.textContent = introduction || (name || headline
+    ? ''
+    : 'The professional introduction has not been published yet. Please check back soon.')
+  description.hidden = !description.textContent
+}
+
+function renderIntroError() {
+  description.setAttribute('role', 'alert')
+  description.replaceChildren('We could not load the introduction right now. ')
+  const retry = document.createElement('button')
+  retry.type = 'button'
+  retry.className = 'btn btn-link p-0 align-baseline'
+  retry.textContent = 'Try again'
+  retry.addEventListener('click', loadHomeContent)
+  description.append(retry)
+}
+
+function renderContacts(links) {
+  if (renderContactCards(contactList, links) === 0) {
+    contactList.replaceChildren(statusMessage('Contact details have not been published yet.'))
+  }
+}
+
+async function loadHomeContent() {
+  description.setAttribute('role', 'status')
+  description.hidden = false
+  description.textContent = 'Loading profile…'
+  contactList.replaceChildren(statusMessage('Loading contact details…'))
+
+  const [content, links] = await Promise.allSettled([getPublicSiteContent(), getPublicContactLinks()])
+
+  if (content.status === 'fulfilled') {
+    renderIntro(content.value)
+  } else {
+    console.error(content.reason)
+    renderIntroError()
+  }
+
+  if (links.status === 'fulfilled') {
+    renderContacts(links.value)
+  } else {
+    console.error(links.reason)
+    contactList.replaceChildren(statusMessage('We could not load the contact details right now.', loadHomeContent))
+  }
+}
+
+loadHomeContent()
