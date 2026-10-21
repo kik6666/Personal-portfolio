@@ -10,6 +10,7 @@ export default defineConfig({
         businessCard: resolve(import.meta.dirname, 'business-card/index.html'),
         projects: resolve(import.meta.dirname, 'projects/index.html'),
         certificates: resolve(import.meta.dirname, 'certificates/index.html'),
+        adminDashboard: resolve(import.meta.dirname, 'admin/index.html'),
         adminLogin: resolve(import.meta.dirname, 'admin/login/index.html'),
         adminRecovery: resolve(import.meta.dirname, 'admin/recovery/index.html'),
       },

@@ -1,4 +1,4 @@
-import { getCurrentAdminUser, sendPasswordRecovery, signInAdmin, signOut } from '../services/auth.js'
+import { getCurrentAdminUser, sendPasswordRecovery, signInAdmin } from '../services/auth.js'
 import { mountSite } from '../site.js'
 
 mountSite('admin-login')
@@ -34,20 +34,14 @@ document.querySelector('#main-content').innerHTML = `
       <button id="hide-recovery" class="auth-text-button" type="button">Back to sign in</button>
     </form>
 
-    <section id="admin-verified" class="auth-verified" aria-live="polite" hidden>
-      <span class="auth-verified-icon"><i class="bi bi-shield-check" aria-hidden="true"></i></span>
-      <h2>Administrator access verified</h2>
-      <p id="verified-email" class="auth-help"></p>
-      <p class="auth-help">The Admin Dashboard will be available in a later step.</p>
-      <button id="logout-button" class="btn btn-outline-primary" type="button">Sign out</button>
-    </section>
   </section>
 `
 
 const feedback = document.querySelector('#auth-feedback')
 const loginForm = document.querySelector('#login-form')
 const recoveryForm = document.querySelector('#recovery-form')
-const verifiedPanel = document.querySelector('#admin-verified')
+let dashboardRedirectStarted = false
+let sessionRestorePromise = Promise.resolve()
 
 function showFeedback(message, kind = 'error') {
   feedback.textContent = message
@@ -62,14 +56,6 @@ function clearFeedback() {
   delete feedback.dataset.kind
 }
 
-function showVerified(user) {
-  clearFeedback()
-  loginForm.hidden = true
-  recoveryForm.hidden = true
-  verifiedPanel.hidden = false
-  document.querySelector('#verified-email').textContent = user.email ?? ''
-}
-
 function setFormPending(form, pending, buttonText) {
   const button = form.querySelector('button[type="submit"]')
   button.disabled = pending
@@ -82,9 +68,13 @@ loginForm.addEventListener('submit', async (event) => {
   setFormPending(loginForm, true, 'Sign in')
 
   try {
+    await sessionRestorePromise
+    if (dashboardRedirectStarted) return
+
     const formData = new FormData(loginForm)
-    const user = await signInAdmin(formData.get('email'), formData.get('password'))
-    showVerified(user)
+    await signInAdmin(formData.get('email'), formData.get('password'))
+    dashboardRedirectStarted = true
+    window.location.replace('/admin/')
   } catch (error) {
     showFeedback(error.message || 'Unable to sign in. Please try again.')
   } finally {
@@ -124,26 +114,16 @@ recoveryForm.addEventListener('submit', async (event) => {
   }
 })
 
-document.querySelector('#logout-button').addEventListener('click', async () => {
-  clearFeedback()
-  try {
-    await signOut()
-    verifiedPanel.hidden = true
-    loginForm.hidden = false
-    loginForm.reset()
-    showFeedback('You have been signed out.', 'success')
-  } catch (error) {
-    showFeedback(error.message || 'Unable to sign out. Please try again.')
-  }
-})
-
 async function restoreAdminSession() {
   try {
     const user = await getCurrentAdminUser()
-    if (user) showVerified(user)
+    if (user) {
+      dashboardRedirectStarted = true
+      window.location.replace('/admin/')
+    }
   } catch (error) {
     showFeedback(error.message || 'Unable to verify administrator access.')
   }
 }
 
-restoreAdminSession()
+sessionRestorePromise = restoreAdminSession()
