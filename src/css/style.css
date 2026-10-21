@@ -465,6 +465,24 @@ p {
   margin: 0 auto;
 }
 
+.business-card-artwork {
+  width: min(100%, 760px);
+  margin: 0 auto 1rem;
+  padding: 0.65rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background: var(--color-white);
+  box-shadow: var(--shadow-card);
+}
+
+.business-card-artwork img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0.6rem;
+}
+
 .digital-card {
   position: relative;
   min-height: 370px;
@@ -778,8 +796,8 @@ p {
 }
 
 .certificate-thumb {
-  width: 3.4rem;
-  height: 4.4rem;
+  width: 4.25rem;
+  height: 5.5rem;
   overflow: hidden;
   border: 1px solid var(--color-border);
 }

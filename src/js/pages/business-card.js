@@ -1,4 +1,6 @@
 import { backHomeLink, escapeHtml, headlineMarkup, mountSite, pageHeading } from '../site.js'
+import { getPublicSiteContent } from '../services/site-content.js'
+import { getPublicSiteAssetUrl, SITE_MEDIA_KEYS } from '../services/storage-urls.js'
 import { profile } from '../content.js'
 
 mountSite('business-card')
@@ -6,6 +8,9 @@ mountSite('business-card')
 document.querySelector('#main-content').innerHTML = `
   ${pageHeading('Stay in touch', 'Business Card', 'A quick way to connect with me professionally.')}
   <section class="business-card-stage" aria-label="Digital business card">
+    <figure class="business-card-artwork" hidden>
+      <img alt="Business card artwork" />
+    </figure>
     <article class="digital-card">
       <div class="digital-card-top">
         <span class="brand-mark brand-mark-large" aria-hidden="true">KP</span>
@@ -23,7 +28,27 @@ document.querySelector('#main-content').innerHTML = `
         </a>
       </div>
     </article>
-    <p class="card-caption"><i class="bi bi-info-circle" aria-hidden="true"></i> This digital version uses the contact details from my CV. A designed business-card image can be added here later.</p>
+    <p class="card-caption"><i class="bi bi-info-circle" aria-hidden="true"></i> This digital version uses the contact details from my CV.</p>
   </section>
   ${backHomeLink()}
 `
+
+const artwork = document.querySelector('.business-card-artwork')
+const artworkImage = artwork.querySelector('img')
+artworkImage.addEventListener('error', () => {
+  artwork.hidden = true
+})
+
+async function loadBusinessCardArtwork() {
+  try {
+    const siteContent = await getPublicSiteContent()
+    const artworkUrl = getPublicSiteAssetUrl(siteContent, SITE_MEDIA_KEYS.businessCardImage)
+    if (!artworkUrl) return
+    artworkImage.src = artworkUrl
+    artwork.hidden = false
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+loadBusinessCardArtwork()

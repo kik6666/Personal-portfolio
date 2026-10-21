@@ -1,6 +1,7 @@
 import avatarVideo from '../../../virtual_avatar_video_home_page/Avatar Video_1080p.mp4?url'
 import { getPublicContactLinks } from '../services/contact-links.js'
 import { getPublicSiteContent } from '../services/site-content.js'
+import { getPublicSiteAssetUrl, SITE_MEDIA_KEYS } from '../services/storage-urls.js'
 import { mountSite } from '../site.js'
 import { readProfile, renderContactCards, renderHeadline, statusMessage } from './home-content.js'
 
@@ -83,7 +84,13 @@ document.querySelector('#main-content').innerHTML = `
 `
 
 const video = document.querySelector('.avatar-video')
+const videoSource = video.querySelector('source')
 video.addEventListener('error', () => {
+  if (videoSource.getAttribute('src') !== avatarVideo) {
+    videoSource.src = avatarVideo
+    video.load()
+    return
+  }
   document.querySelector('.video-error').hidden = false
 })
 
@@ -94,6 +101,11 @@ const contactList = document.querySelector('#contact-links')
 
 function renderIntro(siteContent) {
   const { name, headline, introduction } = readProfile(siteContent)
+  const avatarVideoUrl = getPublicSiteAssetUrl(siteContent, SITE_MEDIA_KEYS.avatarVideo)
+  if (avatarVideoUrl) {
+    videoSource.src = avatarVideoUrl
+    video.load()
+  }
   title.textContent = name || 'Welcome'
   renderHeadline(role, headline)
   description.removeAttribute('role')

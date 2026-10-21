@@ -52,3 +52,37 @@ an authenticated user cannot grant themselves administrator access.
   require the administrator role. Do not store private drafts or confidential
   files in this bucket.
 - Uploads are limited to 50 MiB and JPEG, PNG, WebP, PDF or MP4 MIME types.
+
+## Public media references
+
+The `portfolio-assets` bucket is public for reading. Store bucket-relative
+object paths in content records, not full Storage URLs. The frontend resolves
+those paths with `getPublicAssetUrl()`; it does not upload files.
+
+The `site_content` table has a generic `key`/JSONB `value` shape rather than
+dedicated media columns. These public keys use string values containing paths
+relative to the bucket:
+
+| `site_content.key` | Media |
+| --- | --- |
+| `avatar_video_path` | Home-page avatar video |
+| `cv_pdf_path` | CV PDF |
+| `cv_preview_image_path` | CV preview image |
+| `business_card_image_path` | Optional business-card artwork |
+
+Set `is_public` to `true` for references intended for visitors. If a reference
+is absent, the pages retain their bundled/local media or existing UI fallback.
+
+Projects use `projects.preview_image_path`. Certificates use
+`certificates.pdf_path` and `certificates.preview_image_path`; the PDF or
+`credential_url` supplies the “View Certificate” target. A preview image is an
+optional separate JPEG, PNG or WebP made from the certificate PDF's first page.
+Without it, the gallery displays its award-icon fallback.
+
+To publish the existing local certificates later, upload each original PDF to
+the bucket (for example, `certificates/<certificate-name>.pdf`), optionally
+upload a separate first-page thumbnail under `certificates/previews/`, then
+create its metadata row with the corresponding paths and `is_published` set to
+`true` only when it is ready for public display. Use the existing administrator
+write policies for uploads and records; never use a service-role key in the
+frontend. No files or records are uploaded by the current media integration.
