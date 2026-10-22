@@ -140,6 +140,14 @@ function createFixture({
   }
 }
 
+test('stores a month-only issue date as the first day of the month', () => {
+  assert.equal(validateCertificateForm({ ...validValues, issueDate: '2026-04' }).issue_date, '2026-04-01')
+  assert.throws(
+    () => validateCertificateForm({ ...validValues, issueDate: '2026-13' }),
+    { code: 'invalid-issue-date', field: 'issueDate' },
+  )
+})
+
 test('validates required title, safe credential URL, date, order and publishability', () => {
   assert.throws(
     () => validateCertificateForm({ ...validValues, title: '   ' }),

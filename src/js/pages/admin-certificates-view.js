@@ -80,8 +80,8 @@ export function renderAdminCertificateManager(root) {
             <input id="admin-certificate-issuer" name="issuer" class="form-control" type="text" maxlength="250" autocomplete="organization" />
           </div>
           <div class="admin-certificate-field">
-            <label for="admin-certificate-date">Issue date</label>
-            <input id="admin-certificate-date" name="issueDate" class="form-control" type="date" />
+            <label for="admin-certificate-date">Issue month</label>
+            <input id="admin-certificate-date" name="issueDate" class="form-control" type="month" />
           </div>
           <div class="admin-certificate-field admin-certificate-field-wide">
             <label for="admin-certificate-credential-url">Official credential URL</label>
@@ -137,7 +137,7 @@ export function showAdminCertificateForm(certificate) {
     : 'Add Certificate'
   document.querySelector('#admin-certificate-title').value = certificate?.title ?? ''
   document.querySelector('#admin-certificate-issuer').value = certificate?.issuer ?? ''
-  document.querySelector('#admin-certificate-date').value = certificate?.issue_date ?? ''
+  document.querySelector('#admin-certificate-date').value = certificate?.issue_date?.slice(0, 7) ?? ''
   document.querySelector('#admin-certificate-credential-url').value = certificate?.credential_url ?? ''
   document.querySelector('#admin-certificate-order').value = String(certificate?.sort_order ?? 0)
   document.querySelector('#admin-certificate-form-error').hidden = true
@@ -209,7 +209,7 @@ export function renderAdminCertificates(certificates, handlers) {
     const metadata = [
       certificate.issuer,
       certificate.issue_date
-        ? new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(
+        ? new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
           new Date(`${certificate.issue_date}T00:00:00.000Z`),
         )
         : null,

@@ -48,7 +48,9 @@ export function validateCertificateForm(
   }
 
   const issuerValue = typeof values?.issuer === 'string' ? values.issuer.trim() : ''
-  const issueDateValue = typeof values?.issueDate === 'string' ? values.issueDate.trim() : ''
+  let issueDateValue = typeof values?.issueDate === 'string' ? values.issueDate.trim() : ''
+  // A month picker yields YYYY-MM; store it as the first day of that month.
+  if (/^\d{4}-\d{2}$/.test(issueDateValue)) issueDateValue = `${issueDateValue}-01`
   let issueDate = null
   if (issueDateValue) {
     const parsedDate = new Date(`${issueDateValue}T00:00:00.000Z`)
