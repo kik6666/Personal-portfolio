@@ -6,6 +6,8 @@ import {
   setAdminCertificatePublished,
 } from '../services/admin-certificates.js'
 import { CertificateValidationError } from '../services/admin-certificates-validation.js'
+import { generateCertificatePdfPreview } from '../services/certificate-pdf-preview.js'
+import { createCertificatePreviewController } from '../services/certificate-preview-controller.js'
 import {
   hideAdminCertificateForm,
   renderAdminCertificateManager,
@@ -13,6 +15,7 @@ import {
   renderAdminCertificates,
   setAdminCertificateFeedback,
   setAdminCertificateListState,
+  setAdminCertificatePreview,
   showAdminCertificateForm,
   showAdminCertificateFormError,
 } from './admin-certificates-view.js'
@@ -23,6 +26,65 @@ export function mountAdminCertificates(root) {
   let pendingCleanupPaths = []
   const form = document.querySelector('#admin-certificate-form')
   const list = document.querySelector('#admin-certificate-list')
+  const pdfInput = document.querySelector('#admin-certificate-pdf')
+  const previewInput = document.querySelector('#admin-certificate-preview')
+  const submitButtons = form.querySelectorAll('button[type="submit"]')
+  let isSaving = false
+  let previewObjectUrl = null
+  let previewObjectFile = null
+
+  function updatePreview(state) {
+    if (previewObjectFile !== state.previewFile) {
+      if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl)
+      previewObjectFile = state.previewFile
+      previewObjectUrl = previewObjectFile ? URL.createObjectURL(previewObjectFile) : null
+    }
+
+    let message = ''
+    let error = false
+    if (state.busy) {
+      message = 'Generating the first-page preview. Saving is unavailable until this finishes.'
+    } else if (state.error && state.previewKind === 'manual') {
+      message = `Automatic preview generation failed; the manually selected image will be used. ${state.error.message}`
+      error = true
+    } else if (state.error) {
+      message = `${state.error.message} Select another PDF or choose a preview image manually.`
+      error = true
+    } else if (state.previewKind === 'manual') {
+      message = 'Manual preview selected. It will be used instead of the generated preview.'
+    } else if (state.previewKind === 'generated') {
+      message = 'First-page preview generated. It will be uploaded with the PDF when you save.'
+    }
+
+    setAdminCertificatePreview({ message, previewUrl: previewObjectUrl, error })
+    submitButtons.forEach((button) => { button.disabled = isSaving || !state.canSave })
+    pdfInput.disabled = isSaving
+    previewInput.disabled = isSaving
+  }
+
+  window.addEventListener('pagehide', () => {
+    if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl)
+  }, { once: true })
+
+  const previewController = createCertificatePreviewController({
+    generatePreview: generateCertificatePdfPreview,
+    onChange: updatePreview,
+  })
+  updatePreview(previewController.getState())
+
+  pdfInput.addEventListener('change', () => {
+    previewInput.value = ''
+    void previewController.selectPdf(pdfInput.files?.[0] ?? null)
+  })
+  previewInput.addEventListener('change', () => {
+    previewController.selectManualPreview(previewInput.files?.[0] ?? null)
+  })
+  form.addEventListener('reset', () => {
+    previewController.reset()
+  })
+  document.querySelector('#admin-certificate-add').addEventListener('click', () => {
+    previewController.reset()
+  })
 
   function addPendingCleanup(paths) {
     pendingCleanupPaths = [...new Set([...pendingCleanupPaths, ...paths])]
@@ -98,6 +160,7 @@ export function mountAdminCertificates(root) {
     setAdminCertificateFeedback('')
 
     if (action === 'edit') {
+      previewController.reset()
       showAdminCertificateForm(certificate)
       return
     }
@@ -169,6 +232,16 @@ export function mountAdminCertificates(root) {
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault()
+    const previewState = previewController.getState()
+    if (!previewState.canSave || isSaving) {
+      showAdminCertificateFormError(
+        previewState.busy
+          ? 'Wait for PDF preview generation to finish before saving.'
+          : 'Generate a preview or select a manual preview image before saving this PDF.',
+        previewState.busy ? 'pdfFile' : 'previewFile',
+      )
+      return
+    }
     const submitter = event.submitter
     const publish = submitter?.dataset.publish === 'true'
     const formData = new FormData(form)
@@ -181,9 +254,14 @@ export function mountAdminCertificates(root) {
       sortOrder: formData.get('sortOrder'),
     }
     const pdfFile = formData.get('pdfFile')
-    const previewFile = formData.get('previewFile')
-    const files = form.querySelectorAll('button[type="submit"]')
-    files.forEach((button) => { button.disabled = true })
+    const selectedPdf = pdfFile instanceof File && pdfFile.size > 0 ? pdfFile : null
+    if (selectedPdf && previewState.pdfFile !== selectedPdf) {
+      showAdminCertificateFormError('The selected PDF changed before its preview was ready. Select it again and wait for preview generation.', 'pdfFile')
+      return
+    }
+    const previewFile = previewState.previewFile
+    isSaving = true
+    updatePreview(previewState)
     setAdminCertificateFeedback('')
     document.querySelector('#admin-certificate-form-error').hidden = true
 
@@ -191,7 +269,7 @@ export function mountAdminCertificates(root) {
       const result = await saveAdminCertificate({
         id,
         values,
-        pdfFile: pdfFile instanceof File && pdfFile.size > 0 ? pdfFile : null,
+        pdfFile: selectedPdf,
         previewFile: previewFile instanceof File && previewFile.size > 0 ? previewFile : null,
         publish,
       })
@@ -206,7 +284,8 @@ export function mountAdminCertificates(root) {
       showOperationError(error)
       if (error?.databaseOutcomeUnknown) await loadCertificates()
     } finally {
-      files.forEach((button) => { button.disabled = false })
+      isSaving = false
+      updatePreview(previewController.getState())
     }
   })
 

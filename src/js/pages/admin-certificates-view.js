@@ -100,7 +100,11 @@ export function renderAdminCertificateManager(root) {
           <div class="admin-certificate-field admin-certificate-field-wide">
             <label for="admin-certificate-preview">Preview image <span class="text-muted">(optional)</span></label>
             <input id="admin-certificate-preview" name="previewFile" class="form-control" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" />
-            <small>JPEG, PNG, or WebP; maximum 50 MiB. A selected image replaces the current preview.</small>
+            <small>Generated automatically from the first PDF page. Choose an image to override it. JPEG, PNG, or WebP; maximum 50 MiB.</small>
+          </div>
+          <div id="admin-certificate-preview-result" class="admin-certificate-preview-result" role="status" aria-live="polite" hidden>
+            <p id="admin-certificate-preview-message"></p>
+            <img id="admin-certificate-preview-image" alt="Preview of the selected certificate image" hidden />
           </div>
           <div class="admin-certificate-field admin-certificate-field-wide">
             <span class="admin-certificate-label">Current files</span>
@@ -151,6 +155,19 @@ export function hideAdminCertificateForm() {
   form.hidden = true
   form.reset()
   form.dataset.certificateId = ''
+}
+
+export function setAdminCertificatePreview({ message, previewUrl = null, error = false }) {
+  const result = document.querySelector('#admin-certificate-preview-result')
+  const status = document.querySelector('#admin-certificate-preview-message')
+  const image = document.querySelector('#admin-certificate-preview-image')
+  status.textContent = message
+  result.dataset.kind = error ? 'error' : 'status'
+  result.setAttribute('role', error ? 'alert' : 'status')
+  result.hidden = !message && !previewUrl
+  image.hidden = !previewUrl
+  if (previewUrl) image.src = previewUrl
+  else image.removeAttribute('src')
 }
 
 export function showAdminCertificateFormError(message, field = null) {
