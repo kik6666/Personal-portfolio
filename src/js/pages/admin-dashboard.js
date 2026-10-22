@@ -5,6 +5,7 @@ import {
 } from '../services/auth.js'
 import { getPublishedCertificates } from '../services/certificates.js'
 import { getPublishedProjects } from '../services/projects.js'
+import { mountAdminCertificates } from './admin-certificates.js'
 import { mountSite } from '../site.js'
 
 mountSite('admin-login')
@@ -122,9 +123,9 @@ function renderDashboard(user) {
                 <p class="eyebrow">Learning &amp; development</p>
                 <h2 id="certificates-title">Certificates</h2>
               </div>
-              <span class="admin-status-badge admin-status-unavailable">Editing unavailable</span>
+              <span class="admin-status-badge admin-status-readonly">Management enabled</span>
             </div>
-            <p>Certificate management is not enabled in this dashboard step. Published certificate totals above are read-only.</p>
+            <div id="admin-certificates-manager"></div>
             <a class="admin-public-link" href="/certificates/">View the public Certificates page <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
           </section>
 
@@ -169,6 +170,7 @@ function renderDashboard(user) {
   document.querySelector('#admin-logout').addEventListener('click', handleLogout)
   document.querySelector('#admin-stats-retry').addEventListener('click', loadStatistics)
   loadStatistics()
+  mountAdminCertificates(document.querySelector('#admin-certificates-manager'))
 }
 
 function setStatisticsError() {
