@@ -6,6 +6,7 @@ import {
 import { getPublishedCertificates } from '../services/certificates.js'
 import { getPublishedProjects } from '../services/projects.js'
 import { mountAdminCertificates } from './admin-certificates.js'
+import { mountAdminProjects } from './admin-projects.js'
 import { mountSite } from '../site.js'
 
 mountSite('admin-login')
@@ -111,9 +112,9 @@ function renderDashboard(user) {
                 <p class="eyebrow">Portfolio work</p>
                 <h2 id="projects-title">Projects</h2>
               </div>
-              <span class="admin-status-badge admin-status-unavailable">Editing unavailable</span>
+              <span class="admin-status-badge admin-status-readonly">Management enabled</span>
             </div>
-            <p>Project management is not enabled in this dashboard step. Published project totals above are read-only.</p>
+            <div id="admin-projects-manager"></div>
             <a class="admin-public-link" href="/projects/">View the public Projects page <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
           </section>
 
@@ -170,6 +171,7 @@ function renderDashboard(user) {
   document.querySelector('#admin-logout').addEventListener('click', handleLogout)
   document.querySelector('#admin-stats-retry').addEventListener('click', loadStatistics)
   loadStatistics()
+  mountAdminProjects(document.querySelector('#admin-projects-manager'))
   mountAdminCertificates(document.querySelector('#admin-certificates-manager'))
 }
 

@@ -1308,7 +1308,8 @@ p {
   margin-bottom: 1.2rem;
 }
 
-.admin-certificate-manager {
+.admin-certificate-manager,
+.admin-project-manager {
   display: grid;
   min-width: 0;
   gap: 1rem;
@@ -1330,7 +1331,8 @@ p {
   line-height: 1.55;
 }
 
-.admin-certificate-form {
+.admin-certificate-form,
+.admin-project-form {
   display: grid;
   gap: 1.2rem;
   padding: clamp(1rem, 2.5vw, 1.4rem);
@@ -1339,7 +1341,8 @@ p {
   background: linear-gradient(145deg, rgb(107 33 168 / 4%), #fff 58%);
 }
 
-.admin-certificate-form[hidden] {
+.admin-certificate-form[hidden],
+.admin-project-form[hidden] {
   display: none;
 }
 
@@ -1358,24 +1361,28 @@ p {
   font-weight: 660;
 }
 
-.admin-certificate-fields {
+.admin-certificate-fields,
+.admin-project-fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
-.admin-certificate-field {
+.admin-certificate-field,
+.admin-project-field {
   display: grid;
   min-width: 0;
   align-content: start;
   gap: 0.4rem;
 }
 
-.admin-certificate-field-wide {
+.admin-certificate-field-wide,
+.admin-project-field-wide {
   grid-column: 1 / -1;
 }
 
 .admin-certificate-field label,
+.admin-project-field label,
 .admin-certificate-label {
   color: var(--color-slate);
   font-size: 0.82rem;
@@ -1390,6 +1397,51 @@ p {
   color: var(--color-muted);
   font-size: 0.74rem;
   line-height: 1.45;
+}
+
+.admin-project-field small {
+  color: var(--color-muted);
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.admin-project-current-preview,
+.admin-project-selected-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: 0.5rem 1rem;
+  min-width: 0;
+}
+
+.admin-project-selected-preview[hidden] {
+  display: none;
+}
+
+.admin-project-preview-image {
+  display: block;
+  width: min(100%, 16rem);
+  max-height: 13rem;
+  object-fit: contain;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.admin-project-row > .admin-project-preview-image {
+  flex: 0 0 5rem;
+  width: 5rem;
+  height: 5rem;
+  object-fit: cover;
+}
+
+.admin-project-preview-link {
+  align-self: center;
+  color: var(--color-blue-deep);
+  font-size: 0.82rem;
+  font-weight: 620;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
 }
 
 .admin-certificate-current-assets {
@@ -1513,22 +1565,26 @@ p {
   padding-left: 1.25rem;
 }
 
-.admin-certificate-list-state {
+.admin-certificate-list-state,
+.admin-project-list-state {
   color: var(--color-muted);
   font-size: 0.88rem;
 }
 
-.admin-certificate-list-state[data-kind="error"] {
+.admin-certificate-list-state[data-kind="error"],
+.admin-project-list-state[data-kind="error"] {
   color: #8e2929;
 }
 
-.admin-certificate-list {
+.admin-certificate-list,
+.admin-project-list {
   display: grid;
   gap: 0.65rem;
   min-width: 0;
 }
 
-.admin-certificate-row {
+.admin-certificate-row,
+.admin-project-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1544,6 +1600,11 @@ p {
   min-width: 0;
 }
 
+.admin-project-details {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .admin-certificate-row-heading {
   display: flex;
   align-items: center;
@@ -1552,6 +1613,21 @@ p {
 }
 
 .admin-certificate-row-heading h3 {
+  margin: 0;
+  color: var(--color-slate);
+  font-size: 0.95rem;
+  font-weight: 660;
+  overflow-wrap: anywhere;
+}
+
+.admin-project-row-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.admin-project-row-heading h3 {
   margin: 0;
   color: var(--color-slate);
   font-size: 0.95rem;
@@ -1586,6 +1662,14 @@ p {
   overflow-wrap: anywhere;
 }
 
+.admin-project-metadata {
+  margin: 0.35rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
 .admin-certificate-actions {
   display: flex;
   flex: 0 0 auto;
@@ -1594,7 +1678,16 @@ p {
   gap: 0.4rem;
 }
 
-.admin-certificate-empty {
+.admin-project-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.admin-certificate-empty,
+.admin-project-empty {
   margin: 0;
   padding: 1rem;
   border: 1px dashed var(--color-border);
@@ -1673,12 +1766,14 @@ p {
     flex: 0 0 auto;
   }
 
-  .admin-certificate-row {
+  .admin-certificate-row,
+  .admin-project-row {
     align-items: start;
     flex-direction: column;
   }
 
-  .admin-certificate-actions {
+  .admin-certificate-actions,
+  .admin-project-actions {
     justify-content: flex-start;
   }
 }
@@ -1754,11 +1849,13 @@ p {
     flex-direction: column;
   }
 
-  .admin-certificate-fields {
+  .admin-certificate-fields,
+  .admin-project-fields {
     grid-template-columns: 1fr;
   }
 
-  .admin-certificate-field-wide {
+  .admin-certificate-field-wide,
+  .admin-project-field-wide {
     grid-column: auto;
   }
 
