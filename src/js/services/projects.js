@@ -5,7 +5,7 @@ export function getPublishedProjects() {
   return runPublicQuery(
     requireSupabase()
       .from('projects')
-      .select('id, title, slug, description, technologies, preview_image_path, live_url, repository_url, completed_at, sort_order')
+      .select('id, title, slug, description, technologies, preview_image_path, video_path, video_url, live_url, repository_url, completed_at, sort_order')
       .eq('is_published', true)
       .order('sort_order', { ascending: true })
       .order('completed_at', { ascending: false, nullsFirst: false }),

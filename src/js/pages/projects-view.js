@@ -1,4 +1,5 @@
 import { safeHttpUrl } from '../utils/safe-url.js'
+import { resolveProjectVideoSource } from '../services/project-video.js'
 
 function element(tag, className, text) {
   const node = document.createElement(tag)
@@ -31,7 +32,11 @@ function externalButton(href, label, iconName, variant) {
   return link
 }
 
-export function projectCard(project, resolveImageUrl = () => null) {
+export function projectCard(
+  project,
+  resolveImageUrl = () => null,
+  onWatchVideo = null,
+) {
   const title = typeof project?.title === 'string' ? project.title.trim() : ''
   if (!title) return null
 
@@ -81,8 +86,17 @@ export function projectCard(project, resolveImageUrl = () => null) {
 
   const liveUrl = safeHttpUrl(project.live_url)
   const repositoryUrl = safeHttpUrl(project.repository_url)
-  if (liveUrl || repositoryUrl) {
+  const videoSource = resolveProjectVideoSource(project, resolveImageUrl)
+  if (liveUrl || repositoryUrl || (videoSource && typeof onWatchVideo === 'function')) {
     const actions = element('div', 'project-actions')
+    if (videoSource && typeof onWatchVideo === 'function') {
+      const watch = element('button', 'btn btn-outline-primary btn-sm')
+      watch.type = 'button'
+      watch.setAttribute('aria-haspopup', 'dialog')
+      watch.append(icon('play-circle'), ' Watch Video')
+      watch.addEventListener('click', (event) => onWatchVideo(project, event.currentTarget))
+      actions.append(watch)
+    }
     if (liveUrl) actions.append(externalButton(liveUrl, 'View Live Project', 'box-arrow-up-right', 'primary'))
     if (repositoryUrl) actions.append(externalButton(repositoryUrl, 'View GitHub', 'github', 'outline-primary'))
     body.append(actions)
@@ -92,8 +106,10 @@ export function projectCard(project, resolveImageUrl = () => null) {
   return card
 }
 
-export function renderProjects(container, projects, resolveImageUrl) {
-  const cards = projects.map((project) => projectCard(project, resolveImageUrl)).filter(Boolean)
+export function renderProjects(container, projects, resolveImageUrl, { onWatchVideo = null } = {}) {
+  const cards = projects
+    .map((project) => projectCard(project, resolveImageUrl, onWatchVideo))
+    .filter(Boolean)
   if (cards.length === 0) return 0
 
   const grid = element('div', 'project-grid')

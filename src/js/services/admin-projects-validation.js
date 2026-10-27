@@ -3,6 +3,9 @@ import {
   PORTFOLIO_ASSET_PURPOSES,
   validatePortfolioFile,
 } from './portfolio-storage-core.js'
+import { normalizeProjectVideoUrl } from './project-video.js'
+
+export { normalizeProjectVideoUrl } from './project-video.js'
 
 const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
@@ -14,8 +17,6 @@ const PROJECT_VIDEO_PATH = new RegExp(
   `^projects/(${UUID_PATTERN})/video/${UUID_PATTERN}\\.mp4$`,
   'i',
 )
-const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/
-const VIMEO_ID = /^\d{1,20}$/
 
 export class ProjectValidationError extends Error {
   constructor(code, message, field = null) {
@@ -72,46 +73,6 @@ function validateProjectVideoPath(path, projectId) {
     )
   }
   return path
-}
-
-export function normalizeProjectVideoUrl(value) {
-  if (typeof value !== 'string' || !value.trim()) return null
-  try {
-    const url = new URL(value.trim())
-    if (url.protocol !== 'https:' || url.username || url.password || url.port || url.hash) {
-      return null
-    }
-
-    const host = url.hostname.toLowerCase()
-    let youtubeId = null
-    if (host === 'youtu.be') {
-      const match = /^\/([A-Za-z0-9_-]{11})\/?$/.exec(url.pathname)
-      youtubeId = match?.[1] ?? null
-    } else if (['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(host)) {
-      if (url.pathname === '/watch') {
-        const ids = url.searchParams.getAll('v')
-        youtubeId = ids.length === 1 && YOUTUBE_ID.test(ids[0]) ? ids[0] : null
-      } else {
-        const match = /^\/(?:embed|shorts)\/([A-Za-z0-9_-]{11})\/?$/.exec(url.pathname)
-        youtubeId = match?.[1] ?? null
-      }
-    }
-    if (youtubeId && YOUTUBE_ID.test(youtubeId)) {
-      return `https://www.youtube.com/watch?v=${youtubeId}`
-    }
-
-    let vimeoId = null
-    if (host === 'vimeo.com' || host === 'www.vimeo.com') {
-      const match = /^\/(\d{1,20})\/?$/.exec(url.pathname)
-      vimeoId = match?.[1] ?? null
-    } else if (host === 'player.vimeo.com') {
-      const match = /^\/video\/(\d{1,20})\/?$/.exec(url.pathname)
-      vimeoId = match?.[1] ?? null
-    }
-    return vimeoId && VIMEO_ID.test(vimeoId) ? `https://vimeo.com/${vimeoId}` : null
-  } catch {
-    return null
-  }
 }
 
 export function validateProjectVideoFile(file) {
