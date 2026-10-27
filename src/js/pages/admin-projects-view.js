@@ -1,5 +1,6 @@
 import { safeHttpUrl } from '../utils/safe-url.js'
 import { getPublicAssetUrl } from '../services/storage-urls.js'
+import { normalizeProjectVideoUrl } from '../services/admin-projects-validation.js'
 
 function element(tag, className, text) {
   const node = document.createElement(tag)
@@ -43,6 +44,38 @@ function currentPreview(project) {
   }
 }
 
+function currentVideo(project) {
+  const container = document.querySelector('#admin-project-current-video')
+  container.replaceChildren()
+  if (project?.video_path) {
+    const url = safeHttpUrl(getPublicAssetUrl(project.video_path))
+    container.append(element('span', 'admin-project-metadata', project.video_path))
+    if (url) {
+      const link = element('a', '', 'Open current MP4')
+      link.href = url
+      link.target = '_blank'
+      link.rel = 'noopener noreferrer'
+      container.append(link)
+    }
+    return
+  }
+  if (project?.video_url) {
+    const normalizedUrl = normalizeProjectVideoUrl(project.video_url)
+    if (normalizedUrl) {
+      const link = element('a', '', 'Open current YouTube/Vimeo video')
+      link.href = normalizedUrl
+      link.target = '_blank'
+      link.rel = 'noopener noreferrer'
+      container.append(link)
+    } else {
+      container.append(element('span', 'admin-project-metadata', 'Saved external URL is not a supported provider link.'))
+    }
+    container.append(element('span', 'admin-project-metadata', project.video_url))
+    return
+  }
+  container.append(element('span', 'admin-certificate-asset-missing', 'No video source currently attached.'))
+}
+
 export function renderAdminProjectManager(root) {
   root.innerHTML = `
     <div class="admin-project-manager">
@@ -57,7 +90,7 @@ export function renderAdminProjectManager(root) {
       <div id="admin-project-feedback" class="admin-cert-feedback" role="status" aria-live="polite" hidden></div>
       <section id="admin-project-recovery" class="admin-cert-recovery" aria-labelledby="admin-project-recovery-title" hidden>
         <div>
-          <h3 id="admin-project-recovery-title">Image cleanup needs attention</h3>
+          <h3 id="admin-project-recovery-title">Project file cleanup needs attention</h3>
           <p>These files could not be confirmed as removed. Retry cleanup after checking project records.</p>
           <ul id="admin-project-recovery-paths"></ul>
         </div>
@@ -118,6 +151,29 @@ export function renderAdminProjectManager(root) {
             <div id="admin-project-current-preview" class="admin-project-current-preview"></div>
             <div id="admin-project-selected-preview" class="admin-project-selected-preview" hidden></div>
           </div>
+          <div class="admin-project-field admin-project-field-wide">
+            <label for="admin-project-video-source">Project video</label>
+            <select id="admin-project-video-source" name="videoSource" class="form-select">
+              <option value="none">No video</option>
+              <option value="upload">Upload an MP4</option>
+              <option value="external">YouTube or Vimeo URL</option>
+            </select>
+            <small>Choose at most one source. Selecting “No video” removes the current source when saved.</small>
+          </div>
+          <div id="admin-project-video-file-field" class="admin-project-field admin-project-field-wide" hidden>
+            <label for="admin-project-video-file">MP4 video</label>
+            <input id="admin-project-video-file" name="videoFile" class="form-control" type="file" accept="video/mp4,.mp4" />
+            <small>MP4 only, maximum 50 MiB. On an existing MP4 project, leaving this empty keeps the current file.</small>
+          </div>
+          <div id="admin-project-video-url-field" class="admin-project-field admin-project-field-wide" hidden>
+            <label for="admin-project-video-url">YouTube or Vimeo URL</label>
+            <input id="admin-project-video-url" name="videoUrl" class="form-control" type="url" inputmode="url" autocomplete="url" />
+            <small>Supported formats: YouTube watch, short, embed or Shorts links; Vimeo video and player links. HTTPS only.</small>
+          </div>
+          <div class="admin-project-field admin-project-field-wide">
+            <span class="admin-certificate-label">Current video source</span>
+            <div id="admin-project-current-video" class="admin-project-current-video"></div>
+          </div>
         </div>
 
         <div id="admin-project-form-error" class="admin-cert-feedback admin-cert-feedback-error" role="alert" hidden></div>
@@ -140,6 +196,13 @@ export function renderAdminProjectManager(root) {
   document.querySelector('#admin-project-cancel').addEventListener('click', hideAdminProjectForm)
 }
 
+export function setAdminProjectVideoSource(source) {
+  const fileField = document.querySelector('#admin-project-video-file-field')
+  const urlField = document.querySelector('#admin-project-video-url-field')
+  fileField.hidden = source !== 'upload'
+  urlField.hidden = source !== 'external'
+}
+
 export function showAdminProjectForm(project) {
   const form = document.querySelector('#admin-project-form')
   form.reset()
@@ -159,10 +222,19 @@ export function showAdminProjectForm(project) {
   document.querySelector('#admin-project-sort-order').value = String(project?.sort_order ?? 0)
   document.querySelector('#admin-project-live-url').value = project?.live_url ?? ''
   document.querySelector('#admin-project-repository-url').value = project?.repository_url ?? ''
+  const videoSource = document.querySelector('#admin-project-video-source')
+  videoSource.value = project?.video_path
+    ? 'upload'
+    : project?.video_url
+      ? 'external'
+      : 'none'
+  document.querySelector('#admin-project-video-url').value = project?.video_url ?? ''
   document.querySelector('#admin-project-form-error').hidden = true
   document.querySelector('#admin-project-selected-preview').replaceChildren()
   document.querySelector('#admin-project-selected-preview').hidden = true
   currentPreview(project)
+  currentVideo(project)
+  setAdminProjectVideoSource(videoSource.value)
   form.hidden = false
   document.querySelector('#admin-project-title').focus()
 }
@@ -188,6 +260,9 @@ export function showAdminProjectFormError(message, field = null) {
     liveUrl: '#admin-project-live-url',
     repositoryUrl: '#admin-project-repository-url',
     previewFile: '#admin-project-preview-file',
+    videoSource: '#admin-project-video-source',
+    videoUrl: '#admin-project-video-url',
+    videoFile: '#admin-project-video-file',
   }
   if (field) document.querySelector(fields[field])?.focus()
 }

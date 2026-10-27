@@ -9,6 +9,7 @@ import {
   ProjectValidationError,
   suggestProjectSlug,
   validateProjectPreviewFile,
+  validateProjectVideoFile,
 } from '../services/admin-projects-validation.js'
 import {
   hideAdminProjectForm,
@@ -18,6 +19,7 @@ import {
   setAdminProjectFeedback,
   setAdminProjectListState,
   setAdminProjectSelectedPreview,
+  setAdminProjectVideoSource,
   showAdminProjectForm,
   showAdminProjectFormError,
 } from './admin-projects-view.js'
@@ -32,7 +34,8 @@ export function mountAdminProjects(root) {
   const titleInput = document.querySelector('#admin-project-title')
   const slugInput = document.querySelector('#admin-project-slug')
   const previewInput = document.querySelector('#admin-project-preview-file')
-  const submitButtons = form.querySelectorAll('button[type="submit"]')
+  const videoInput = document.querySelector('#admin-project-video-file')
+  const videoSourceInput = document.querySelector('#admin-project-video-source')
   let isSaving = false
 
   function clearSelectedPreview() {
@@ -65,6 +68,20 @@ export function mountAdminProjects(root) {
     previewObjectUrl = URL.createObjectURL(file)
     setAdminProjectSelectedPreview(previewObjectUrl)
   })
+  videoSourceInput.addEventListener('change', () => {
+    if (videoSourceInput.value !== 'upload') videoInput.value = ''
+    setAdminProjectVideoSource(videoSourceInput.value)
+  })
+  videoInput.addEventListener('change', () => {
+    const file = videoInput.files?.[0]
+    if (!file) return
+    try {
+      validateProjectVideoFile(file)
+    } catch (error) {
+      videoInput.value = ''
+      showAdminProjectFormError(error.message, 'videoFile')
+    }
+  })
   form.addEventListener('reset', clearSelectedPreview)
 
   function addPendingCleanup(paths) {
@@ -82,10 +99,10 @@ export function mountAdminProjects(root) {
     const shared = applyCleanupResult(cleanup)
     const failedCount = cleanup?.failed.length ?? 0
     const sharedMessage = shared.length
-      ? ' Shared images were kept because a project still references them.'
+      ? ' Shared files were kept because a project still references them.'
       : ''
     const failedMessage = failedCount
-      ? ' Some images need cleanup; use the retry control below.'
+      ? ' Some files need cleanup; use the retry control below.'
       : ''
     setAdminProjectFeedback(`${successMessage}${sharedMessage}${failedMessage}`)
   }
@@ -124,13 +141,13 @@ export function mountAdminProjects(root) {
       renderAdminProjectRecovery(pendingCleanupPaths, retryCleanup)
       setAdminProjectFeedback(
         pendingCleanupPaths.length
-          ? 'Some images still could not be cleaned up. Retry after checking the project list.'
-          : `Image cleanup retry finished; ${cleanup.deleted.length} file(s) removed.`,
+          ? 'Some files still could not be cleaned up. Retry after checking project records.'
+          : `File cleanup retry finished; ${cleanup.deleted.length} file(s) removed.`,
         pendingCleanupPaths.length ? 'error' : 'success',
       )
     } catch (error) {
       console.error(error)
-      setAdminProjectFeedback(error?.message || 'Image cleanup could not be retried.', 'error')
+      setAdminProjectFeedback(error?.message || 'Project file cleanup could not be retried.', 'error')
     } finally {
       const button = document.querySelector('#admin-project-retry-cleanup')
       if (button) button.disabled = false
@@ -145,7 +162,7 @@ export function mountAdminProjects(root) {
       return
     }
     const sharedMessage = error?.cleanup?.shared?.length
-      ? ' Images still referenced by a project were kept.'
+      ? ' Files still referenced by a project were kept.'
       : ''
     const unknownMessage = error?.databaseOutcomeUnknown
       ? ' Reloading the project list to verify the result.'
@@ -221,15 +238,26 @@ export function mountAdminProjects(root) {
       liveUrl: formData.get('liveUrl'),
       repositoryUrl: formData.get('repositoryUrl'),
       sortOrder: formData.get('sortOrder'),
+      videoSource: formData.get('videoSource'),
+      videoUrl: formData.get('videoUrl'),
     }
     const selectedPreview = formData.get('previewFile')
     const previewFile = selectedPreview instanceof File && selectedPreview.size > 0
       ? selectedPreview
       : null
+    const selectedVideo = formData.get('videoFile')
+    const videoFile = selectedVideo instanceof File && selectedVideo.size > 0
+      ? selectedVideo
+      : null
     isSaving = true
-    submitButtons.forEach((button) => { button.disabled = true })
-    previewInput.disabled = true
-    setAdminProjectFeedback('')
+    const formControls = form.querySelectorAll('input, select, textarea, button')
+    formControls.forEach((control) => { control.disabled = true })
+    form.setAttribute('aria-busy', 'true')
+    setAdminProjectFeedback(
+      previewFile || videoFile
+        ? 'Uploading selected files and saving project…'
+        : 'Saving project…',
+    )
     document.querySelector('#admin-project-form-error').hidden = true
 
     try {
@@ -237,6 +265,7 @@ export function mountAdminProjects(root) {
         id: projectId,
         values,
         previewFile,
+        videoFile,
         publish,
       })
       hideAdminProjectForm()
@@ -251,11 +280,10 @@ export function mountAdminProjects(root) {
       if (error?.databaseOutcomeUnknown) await loadProjects()
     } finally {
       isSaving = false
-      submitButtons.forEach((button) => { button.disabled = false })
-      previewInput.disabled = false
+      formControls.forEach((control) => { control.disabled = false })
+      form.removeAttribute('aria-busy')
     }
   })
 
   loadProjects()
 }
-

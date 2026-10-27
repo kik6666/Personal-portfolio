@@ -16,6 +16,7 @@ export const PORTFOLIO_ASSET_PURPOSES = Object.freeze({
   certificatePdf: 'certificate-pdf',
   certificatePreview: 'certificate-preview',
   projectPreview: 'project-preview',
+  projectVideo: 'project-video',
   cvPdf: 'cv-pdf',
   cvPreview: 'cv-preview',
   businessCardImage: 'business-card-image',
@@ -40,6 +41,12 @@ const PURPOSE_SPECS = Object.freeze({
     recordIdRequired: true,
     slot: 'preview',
     mimeTypes: IMAGE_MIME_TYPES,
+  },
+  [PORTFOLIO_ASSET_PURPOSES.projectVideo]: {
+    prefix: 'projects',
+    recordIdRequired: true,
+    slot: 'video',
+    mimeTypes: ['video/mp4'],
   },
   [PORTFOLIO_ASSET_PURPOSES.cvPdf]: {
     prefix: 'site-content/cv',

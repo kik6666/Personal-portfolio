@@ -5,7 +5,7 @@ import {
   createAdminProjectsOperations,
 } from './admin-projects-core.js'
 
-const PROJECT_COLUMNS = 'id, title, slug, description, technologies, preview_image_path, live_url, repository_url, completed_at, sort_order, is_published, created_by, created_at, updated_at'
+const PROJECT_COLUMNS = 'id, title, slug, description, technologies, preview_image_path, video_path, video_url, live_url, repository_url, completed_at, sort_order, is_published, created_by, created_at, updated_at'
 
 function repository() {
   const client = () => requireSupabase()
@@ -74,16 +74,19 @@ function repository() {
     },
 
     async isAssetReferenced(path) {
-      const { data, error } = await client()
-        .from('projects')
-        .select('id')
-        .eq('preview_image_path', path)
-        .limit(1)
-      if (error) throw error
-      if (!Array.isArray(data)) {
-        throw new AdminProjectsError('invalid-reference-response', 'The image reference check returned an invalid result.')
+      for (const column of ['preview_image_path', 'video_path']) {
+        const { data, error } = await client()
+          .from('projects')
+          .select('id')
+          .eq(column, path)
+          .limit(1)
+        if (error) throw error
+        if (!Array.isArray(data)) {
+          throw new AdminProjectsError('invalid-reference-response', 'The project file reference check returned an invalid result.')
+        }
+        if (data.length > 0) return true
       }
-      return data.length > 0
+      return false
     },
   }
 }

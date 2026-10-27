@@ -10,6 +10,12 @@ const PROJECT_PREVIEW_PATH = new RegExp(
   `^projects/${UUID_PATTERN}/preview/${UUID_PATTERN}\\.(?:jpe?g|png|webp)$`,
   'i',
 )
+const PROJECT_VIDEO_PATH = new RegExp(
+  `^projects/(${UUID_PATTERN})/video/${UUID_PATTERN}\\.mp4$`,
+  'i',
+)
+const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/
+const VIMEO_ID = /^\d{1,20}$/
 
 export class ProjectValidationError extends Error {
   constructor(code, message, field = null) {
@@ -48,6 +54,128 @@ function validateProjectPreviewPath(path) {
   return path
 }
 
+function validateProjectVideoPath(path, projectId) {
+  if (path === null || path === undefined || path === '') return null
+  const match = typeof path === 'string' ? PROJECT_VIDEO_PATH.exec(path) : null
+  if (
+    !match
+    || path.trim() !== path
+    || path.includes('\\')
+    || /[?#\u0000-\u001f]/.test(path)
+    || typeof projectId !== 'string'
+    || match[1].toLowerCase() !== projectId.toLowerCase()
+  ) {
+    throw new ProjectValidationError(
+      'invalid-video-path',
+      'The existing project video path is invalid.',
+      'videoFile',
+    )
+  }
+  return path
+}
+
+export function normalizeProjectVideoUrl(value) {
+  if (typeof value !== 'string' || !value.trim()) return null
+  try {
+    const url = new URL(value.trim())
+    if (url.protocol !== 'https:' || url.username || url.password || url.port || url.hash) {
+      return null
+    }
+
+    const host = url.hostname.toLowerCase()
+    let youtubeId = null
+    if (host === 'youtu.be') {
+      const match = /^\/([A-Za-z0-9_-]{11})\/?$/.exec(url.pathname)
+      youtubeId = match?.[1] ?? null
+    } else if (['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(host)) {
+      if (url.pathname === '/watch') {
+        const ids = url.searchParams.getAll('v')
+        youtubeId = ids.length === 1 && YOUTUBE_ID.test(ids[0]) ? ids[0] : null
+      } else {
+        const match = /^\/(?:embed|shorts)\/([A-Za-z0-9_-]{11})\/?$/.exec(url.pathname)
+        youtubeId = match?.[1] ?? null
+      }
+    }
+    if (youtubeId && YOUTUBE_ID.test(youtubeId)) {
+      return `https://www.youtube.com/watch?v=${youtubeId}`
+    }
+
+    let vimeoId = null
+    if (host === 'vimeo.com' || host === 'www.vimeo.com') {
+      const match = /^\/(\d{1,20})\/?$/.exec(url.pathname)
+      vimeoId = match?.[1] ?? null
+    } else if (host === 'player.vimeo.com') {
+      const match = /^\/video\/(\d{1,20})\/?$/.exec(url.pathname)
+      vimeoId = match?.[1] ?? null
+    }
+    return vimeoId && VIMEO_ID.test(vimeoId) ? `https://vimeo.com/${vimeoId}` : null
+  } catch {
+    return null
+  }
+}
+
+export function validateProjectVideoFile(file) {
+  if (!file) return
+  try {
+    validatePortfolioFile(file, PORTFOLIO_ASSET_PURPOSES.projectVideo)
+  } catch (error) {
+    throw new ProjectValidationError(
+      error?.code || 'invalid-video-file',
+      error?.message || 'Choose a valid MP4 video file.',
+      'videoFile',
+    )
+  }
+}
+
+function validateProjectVideoSelection(values, {
+  projectId,
+  currentVideoPath = null,
+  hasVideoFile = false,
+} = {}) {
+  const currentPath = validateProjectVideoPath(currentVideoPath, projectId)
+  const source = values?.videoSource ?? 'none'
+
+  if (!['none', 'upload', 'external'].includes(source)) {
+    throw new ProjectValidationError(
+      'invalid-video-source',
+      'Choose no video, an MP4 upload, or an external video URL.',
+      'videoSource',
+    )
+  }
+  if (hasVideoFile && source !== 'upload') {
+    throw new ProjectValidationError(
+      'unexpected-video-file',
+      'Choose MP4 upload as the video source to use the selected file.',
+      'videoFile',
+    )
+  }
+
+  if (source === 'upload') {
+    if (hasVideoFile) return { video_path: null, video_url: null }
+    if (currentPath) return { video_path: currentPath, video_url: null }
+    throw new ProjectValidationError(
+      'video-file-required',
+      'Choose an MP4 file for this video source.',
+      'videoFile',
+    )
+  }
+
+  if (source === 'external') {
+    const urlValue = typeof values?.videoUrl === 'string' ? values.videoUrl.trim() : ''
+    const videoUrl = normalizeProjectVideoUrl(urlValue)
+    if (!videoUrl) {
+      throw new ProjectValidationError(
+        'invalid-video-url',
+        'Enter a supported HTTPS YouTube or Vimeo video URL.',
+        'videoUrl',
+      )
+    }
+    return { video_path: null, video_url: videoUrl }
+  }
+
+  return { video_path: null, video_url: null }
+}
+
 function parseTechnologies(value) {
   const entries = Array.isArray(value)
     ? value
@@ -74,7 +202,12 @@ function parseTechnologies(value) {
   return technologies
 }
 
-export function validateProjectForm(values, { previewImagePath = null } = {}) {
+export function validateProjectForm(values, {
+  previewImagePath = null,
+  projectId = null,
+  currentVideoPath = null,
+  hasVideoFile = false,
+} = {}) {
   const title = typeof values?.title === 'string' ? values.title.trim() : ''
   if (!title) {
     throw new ProjectValidationError('title-required', 'Enter a project title.', 'title')
@@ -155,6 +288,11 @@ export function validateProjectForm(values, { previewImagePath = null } = {}) {
   }
 
   const safePreviewPath = validateProjectPreviewPath(previewImagePath)
+  const video = validateProjectVideoSelection(values, {
+    projectId,
+    currentVideoPath,
+    hasVideoFile,
+  })
   return Object.freeze({
     title,
     slug,
@@ -163,6 +301,8 @@ export function validateProjectForm(values, { previewImagePath = null } = {}) {
     preview_image_path: safePreviewPath,
     live_url: liveUrl,
     repository_url: repositoryUrl,
+    video_path: video.video_path,
+    video_url: video.video_url,
     completed_at: completedAt,
     sort_order: sortOrderValue,
   })

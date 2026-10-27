@@ -1,10 +1,8 @@
-import {
-  PORTFOLIO_ASSET_PURPOSES,
-  validatePortfolioFile,
-} from './portfolio-storage-core.js'
+import { PORTFOLIO_ASSET_PURPOSES } from './portfolio-storage-core.js'
 import {
   validateProjectForm,
   validateProjectPreviewFile,
+  validateProjectVideoFile,
 } from './admin-projects-validation.js'
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -84,6 +82,7 @@ export function createAdminProjectsOperations({
     id = null,
     values,
     previewFile = null,
+    videoFile = null,
     publish = false,
   } = {}) {
     await ensureAdmin()
@@ -101,20 +100,30 @@ export function createAdminProjectsOperations({
     }
 
     validateProjectPreviewFile(previewFile)
+    validateProjectVideoFile(videoFile)
     const projectId = current?.id ?? createId()
     requireProjectId(projectId)
     const fields = validateProjectForm(values, {
       previewImagePath: previewFile ? null : current?.preview_image_path,
+      projectId,
+      currentVideoPath: current?.video_path,
+      hasVideoFile: Boolean(videoFile),
     })
 
     const uploaded = []
     try {
       if (previewFile) {
-        validatePortfolioFile(previewFile, PORTFOLIO_ASSET_PURPOSES.projectPreview)
         uploaded.push(await storage.upload({
           purpose: PORTFOLIO_ASSET_PURPOSES.projectPreview,
           recordId: projectId,
           file: previewFile,
+        }))
+      }
+      if (videoFile) {
+        uploaded.push(await storage.upload({
+          purpose: PORTFOLIO_ASSET_PURPOSES.projectVideo,
+          recordId: projectId,
+          file: videoFile,
         }))
       }
     } catch (error) {
@@ -124,15 +133,18 @@ export function createAdminProjectsOperations({
       ])
       throw new AdminProjectsError(
         'project-upload-failed',
-        `The project preview could not be uploaded. ${error?.message || 'Try again.'}`,
+        `One or more project files could not be uploaded. ${error?.message || 'Try again.'}`,
         { cause: error, cleanup, recoveryPaths: cleanupRecoveryPaths(cleanup) },
       )
     }
 
-    const previewUpload = uploaded[0]
+    const previewUpload = uploaded.find((asset) => asset.contentType?.startsWith('image/'))
+    const videoUpload = uploaded.find((asset) => asset.contentType === 'video/mp4')
     const record = {
       ...fields,
       preview_image_path: previewUpload?.path ?? fields.preview_image_path,
+      video_path: videoUpload?.path ?? fields.video_path,
+      video_url: fields.video_url,
       is_published: Boolean(publish),
     }
 
@@ -162,10 +174,14 @@ export function createAdminProjectsOperations({
       )
     }
 
-    const oldPaths = current?.preview_image_path
-      && current.preview_image_path !== record.preview_image_path
-      ? [current.preview_image_path]
-      : []
+    const oldPaths = [
+      current?.preview_image_path !== record.preview_image_path
+        ? current?.preview_image_path
+        : null,
+      current?.video_path !== record.video_path
+        ? current?.video_path
+        : null,
+    ].filter(Boolean)
     const cleanup = await removeUnreferencedPaths(oldPaths)
     return Object.freeze({ project: saved, cleanup })
   }
@@ -206,7 +222,13 @@ export function createAdminProjectsOperations({
           repositoryUrl: current.repository_url ?? '',
           completedAt: current.completed_at ?? '',
           sortOrder: current.sort_order,
-        }, { previewImagePath: current.preview_image_path })
+          videoSource: current.video_path ? 'upload' : current.video_url ? 'external' : 'none',
+          videoUrl: current.video_url ?? '',
+        }, {
+          previewImagePath: current.preview_image_path,
+          projectId: current.id,
+          currentVideoPath: current.video_path,
+        })
       }
 
       try {
@@ -234,7 +256,10 @@ export function createAdminProjectsOperations({
       try {
         await repository.delete(id)
       } catch (error) {
-        const cleanup = await removeUnreferencedPaths([current.preview_image_path])
+        const cleanup = await removeUnreferencedPaths([
+          current.preview_image_path,
+          current.video_path,
+        ])
         throw new AdminProjectsError(
           'project-delete-failed',
           'The project deletion could not be confirmed. Refresh the list before retrying.',
@@ -247,7 +272,10 @@ export function createAdminProjectsOperations({
         )
       }
 
-      const cleanup = await removeUnreferencedPaths([current.preview_image_path])
+      const cleanup = await removeUnreferencedPaths([
+        current.preview_image_path,
+        current.video_path,
+      ])
       return Object.freeze({ project: current, cleanup })
     },
 

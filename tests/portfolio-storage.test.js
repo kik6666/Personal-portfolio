@@ -69,6 +69,15 @@ test('creates safe, versioned bucket-relative paths without using user filenames
   assert.equal(isSafePortfolioAssetPath(path), true)
   assert.equal(
     createPortfolioAssetPath({
+      purpose: PORTFOLIO_ASSET_PURPOSES.projectVideo,
+      recordId: certificateId,
+      file: { name: 'my video.mp4', type: 'video/mp4', size: 1 },
+      versionId,
+    }),
+    `projects/${certificateId}/video/${versionId}.mp4`,
+  )
+  assert.equal(
+    createPortfolioAssetPath({
       purpose: PORTFOLIO_ASSET_PURPOSES.avatarVideo,
       file: { type: 'video/mp4', size: 1 },
       versionId,
@@ -102,9 +111,26 @@ test('rejects unsafe record IDs, version IDs, and storage paths', () => {
     'certificates\\file.pdf',
     'certificates/id/file.pdf?download=1',
     'other-assets/file.pdf',
+    `projects/${certificateId}/video/${versionId}.mov`,
   ]) {
     assert.equal(isSafePortfolioAssetPath(path), false)
   }
+})
+
+test('project video purpose accepts only MP4 files up to the shared 50 MiB limit', () => {
+  const mp4 = { name: 'project.mp4', type: 'video/mp4', size: PORTFOLIO_ASSET_MAX_BYTES }
+  assert.equal(
+    validatePortfolioFile(mp4, PORTFOLIO_ASSET_PURPOSES.projectVideo).contentType,
+    'video/mp4',
+  )
+  assert.throws(
+    () => validatePortfolioFile({ ...mp4, type: 'video/webm' }, PORTFOLIO_ASSET_PURPOSES.projectVideo),
+    { code: 'unsupported-file-type' },
+  )
+  assert.throws(
+    () => validatePortfolioFile({ ...mp4, size: PORTFOLIO_ASSET_MAX_BYTES + 1 }, PORTFOLIO_ASSET_PURPOSES.projectVideo),
+    { code: 'file-too-large' },
+  )
 })
 
 test('uploads a new version only after the administrator guard succeeds', async () => {
@@ -128,6 +154,26 @@ test('uploads a new version only after the administrator guard succeeds', async 
   assert.equal(calls[0].options.contentType, 'application/pdf')
   assert.equal(calls[0].options.upsert, false)
   assert.equal(calls[0].options.cacheControl, '3600')
+})
+
+test('uploads project videos under a unique video path after administrator authorization', async () => {
+  const calls = []
+  const uploadOperations = operationsFor({
+    async upload(path, file, options) {
+      calls.push({ path, file, options })
+      return { data: { path }, error: null }
+    },
+  })
+  const file = { name: 'untrusted filename.mp4', type: 'video/mp4', size: 4096 }
+  const result = await uploadOperations.service.upload({
+    purpose: PORTFOLIO_ASSET_PURPOSES.projectVideo,
+    recordId: certificateId,
+    file,
+  })
+  assert.equal(result.path, `projects/${certificateId}/video/${versionId}.mp4`)
+  assert.equal(calls[0].options.contentType, 'video/mp4')
+  assert.equal(calls[0].options.upsert, false)
+  assert.equal(uploadOperations.adminChecks, 1)
 })
 
 test('rejects upload errors and ambiguous network outcomes explicitly', async () => {

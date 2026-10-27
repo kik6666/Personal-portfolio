@@ -1376,6 +1376,10 @@ p {
   gap: 0.4rem;
 }
 
+.admin-project-field[hidden] {
+  display: none;
+}
+
 .admin-certificate-field-wide,
 .admin-project-field-wide {
   grid-column: 1 / -1;
@@ -1406,7 +1410,8 @@ p {
 }
 
 .admin-project-current-preview,
-.admin-project-selected-preview {
+.admin-project-selected-preview,
+.admin-project-current-video {
   display: flex;
   flex-wrap: wrap;
   align-items: start;
@@ -1416,6 +1421,11 @@ p {
 
 .admin-project-selected-preview[hidden] {
   display: none;
+}
+
+.admin-project-current-video {
+  align-items: center;
+  overflow-wrap: anywhere;
 }
 
 .admin-project-preview-image {
