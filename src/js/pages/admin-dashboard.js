@@ -7,6 +7,7 @@ import { getPublishedCertificates } from '../services/certificates.js'
 import { getPublishedProjects } from '../services/projects.js'
 import { mountAdminCertificates } from './admin-certificates.js'
 import { mountAdminProjects } from './admin-projects.js'
+import { mountAdminSiteContent } from './admin-site-content.js'
 import { mountSite } from '../site.js'
 
 mountSite('admin-login')
@@ -136,9 +137,9 @@ function renderDashboard(user) {
                 <p class="eyebrow">Website settings</p>
                 <h2 id="site-content-title">Site Content</h2>
               </div>
-              <span class="admin-status-badge admin-status-unavailable">Unavailable in this phase</span>
+              <span class="admin-status-badge admin-status-readonly">Biography management enabled</span>
             </div>
-            <p>Editing homepage text and other site content is not available yet.</p>
+            <div id="admin-site-content-manager"></div>
           </section>
 
           <section id="cv-media" class="admin-dashboard-section admin-management-section" aria-labelledby="cv-media-title">
@@ -173,6 +174,7 @@ function renderDashboard(user) {
   loadStatistics()
   mountAdminProjects(document.querySelector('#admin-projects-manager'))
   mountAdminCertificates(document.querySelector('#admin-certificates-manager'))
+  mountAdminSiteContent(document.querySelector('#admin-site-content-manager'))
 }
 
 function setStatisticsError() {

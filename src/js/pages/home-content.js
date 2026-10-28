@@ -29,6 +29,15 @@ export function readProfile(siteContent) {
   }
 }
 
+export function resolveProfileWithFallback(siteContent, fallbackProfile) {
+  const published = readProfile(siteContent)
+  return {
+    name: published.name || textValue(fallbackProfile?.name),
+    headline: published.headline || textValue(fallbackProfile?.headline),
+    introduction: published.introduction || textValue(fallbackProfile?.introduction),
+  }
+}
+
 export function safeContactHref(link) {
   const url = textValue(link?.url)
   if (!url) return null

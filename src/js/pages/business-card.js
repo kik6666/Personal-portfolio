@@ -1,7 +1,8 @@
-import { backHomeLink, escapeHtml, headlineMarkup, mountSite, pageHeading } from '../site.js'
+import { backHomeLink, escapeHtml, mountSite, pageHeading } from '../site.js'
 import { getPublicSiteContent } from '../services/site-content.js'
 import { getPublicSiteAssetUrl, SITE_MEDIA_KEYS } from '../services/storage-urls.js'
 import { profile } from '../content.js'
+import { renderHeadline, resolveProfileWithFallback } from './home-content.js'
 
 mountSite('business-card')
 
@@ -18,8 +19,8 @@ document.querySelector('#main-content').innerHTML = `
       </div>
       <div class="digital-card-content">
         <p class="eyebrow">Marketing · AI · Python</p>
-        <h2>${escapeHtml(profile.name)}</h2>
-        <p>${headlineMarkup()}</p>
+        <h2 id="business-card-name">${escapeHtml(profile.name)}</h2>
+        <p id="business-card-headline"></p>
       </div>
       <div class="digital-card-links">
         <a href="mailto:${escapeHtml(profile.email)}"><i class="bi bi-envelope" aria-hidden="true"></i> ${escapeHtml(profile.email)}</a>
@@ -35,6 +36,9 @@ document.querySelector('#main-content').innerHTML = `
 
 const artwork = document.querySelector('.business-card-artwork')
 const artworkImage = artwork.querySelector('img')
+const cardName = document.querySelector('#business-card-name')
+const cardHeadline = document.querySelector('#business-card-headline')
+renderHeadline(cardHeadline, profile.headline)
 artworkImage.addEventListener('error', () => {
   artwork.hidden = true
 })
@@ -42,6 +46,9 @@ artworkImage.addEventListener('error', () => {
 async function loadBusinessCardArtwork() {
   try {
     const siteContent = await getPublicSiteContent()
+    const sharedProfile = resolveProfileWithFallback(siteContent, profile)
+    cardName.textContent = sharedProfile.name
+    renderHeadline(cardHeadline, sharedProfile.headline)
     const artworkUrl = getPublicSiteAssetUrl(siteContent, SITE_MEDIA_KEYS.businessCardImage)
     if (!artworkUrl) return
     artworkImage.src = artworkUrl
