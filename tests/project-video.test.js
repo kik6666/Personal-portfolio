@@ -6,7 +6,10 @@ import {
   normalizeProjectVideoUrl,
   resolveProjectVideoSource,
 } from '../src/js/services/project-video.js'
-import { createProjectVideoModalController } from '../src/js/services/project-video-modal.js'
+import {
+  createProjectVideoModalController,
+  mountProjectVideoModal,
+} from '../src/js/services/project-video-modal.js'
 
 const projectId = '8c84b1f1-3ddf-4f29-a8db-6bbab6e451a1'
 const videoPath = `projects/${projectId}/video/13a7edc8-9133-4ec1-b3a9-80b495e44648.mp4`
@@ -103,6 +106,10 @@ class FakeElement {
 
   focus() {
     this.focusCount += 1
+  }
+
+  remove() {
+    this.isConnected = false
   }
 
   querySelectorAll(selector) {
@@ -327,4 +334,32 @@ test('does not open the modal for an invalid or missing source', () => {
   assert.equal(fixture.controller.open({ id: projectId, title: 'Invalid', video_url: 'https://example.test/embed' }), false)
   assert.equal(fixture.modal.calls.length, 0)
   assert.equal(fixture.mediaContainer.children.length, 0)
+})
+
+test('mounts an accessible Bootstrap modal with native keyboard dismissal enabled', () => {
+  const root = new FakeElement('div')
+  let modalOptions = null
+  const modal = {
+    show() {},
+    hide() {},
+    dispose() {},
+  }
+  const controller = mountProjectVideoModal(root, {
+    ModalClass: {
+      getOrCreateInstance(_modalElement, options) {
+        modalOptions = options
+        return modal
+      },
+    },
+    resolveAssetUrl: (path) => `https://assets.example/${path}`,
+    documentRef: { createElement: (tagName) => new FakeElement(tagName) },
+  })
+
+  const modalElement = root.children[0]
+  assert.deepEqual(modalOptions, { backdrop: true, focus: true, keyboard: true })
+  assert.equal(modalElement.attributes.get('role'), 'dialog')
+  assert.equal(modalElement.attributes.get('aria-modal'), 'true')
+  assert.equal(modalElement.attributes.get('aria-labelledby'), 'project-video-modal-title')
+  assert.equal(modalElement.attributes.get('aria-describedby'), 'project-video-modal-description')
+  controller.dispose()
 })
