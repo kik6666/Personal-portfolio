@@ -37,6 +37,7 @@ a {
   color: var(--color-blue-deep);
 }
 
+.btn:focus-visible,
 a:focus-visible,
 button:focus-visible {
   outline: 3px solid var(--color-purple);
@@ -263,26 +264,44 @@ p {
 }
 
 .btn-primary {
-  border-color: var(--color-blue);
-  background-color: var(--color-blue);
+  --bs-btn-active-color: var(--color-white);
+  --bs-btn-active-bg: var(--color-blue-deep);
+  --bs-btn-active-border-color: var(--color-blue-deep);
+
+  color: var(--color-white);
+  border-color: var(--color-blue-deep);
+  background-color: var(--color-blue-deep);
 }
 
 .btn-primary:hover,
-.btn-primary:focus {
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active,
+.btn-primary.show,
+.btn-primary:disabled,
+.btn-primary.disabled {
+  color: var(--color-white);
   border-color: var(--color-blue-deep);
   background-color: var(--color-blue-deep);
 }
 
 .btn-outline-primary {
+  --bs-btn-active-color: var(--color-white);
+  --bs-btn-active-bg: var(--color-blue-deep);
+  --bs-btn-active-border-color: var(--color-blue-deep);
+
   border-color: var(--color-blue);
   color: var(--color-blue-deep);
 }
 
 .btn-outline-primary:hover,
-.btn-outline-primary:focus {
-  border-color: var(--color-blue);
+.btn-outline-primary:focus,
+.btn-outline-primary:active,
+.btn-outline-primary.active,
+.btn-outline-primary.show {
+  border-color: var(--color-blue-deep);
   color: var(--color-white);
-  background-color: var(--color-blue);
+  background-color: var(--color-blue-deep);
 }
 
 .contact-section,
