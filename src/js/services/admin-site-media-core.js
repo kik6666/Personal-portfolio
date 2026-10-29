@@ -44,7 +44,7 @@ export const SITE_MEDIA_ITEMS = Object.freeze([
     purpose: PORTFOLIO_ASSET_PURPOSES.businessCardImage,
     accept: 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp',
     help: 'JPEG, PNG, or WebP image, up to 50 MiB.',
-    fallback: 'The Business Card image area stays hidden when this item is missing or unpublished.',
+    fallback: 'Kept as a design reference. The public Business Card page uses its built-in HTML design and does not display this image.',
   }),
 ])
 

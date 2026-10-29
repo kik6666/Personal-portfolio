@@ -2,6 +2,9 @@
   --color-blue: #608abf;
   --color-blue-deep: #456d9d;
   --color-purple: #6b21a8;
+  --color-card-purple: #7c309c;
+  --color-card-ink: #2a3b6f;
+  --color-card-lavender: #f1e8f8;
   --color-slate: #334155;
   --color-muted: #475569;
   --color-white: #fff;
@@ -464,123 +467,246 @@ p {
 .business-card-stage {
   max-width: 760px;
   margin: 0 auto;
-}
-
-.business-card-artwork {
-  width: min(100%, 760px);
-  margin: 0 auto 1rem;
-  padding: 0.65rem;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: 1rem;
-  background: var(--color-white);
-  box-shadow: var(--shadow-card);
-}
-
-.business-card-artwork img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 0.6rem;
+  container-type: inline-size;
 }
 
 .digital-card {
   position: relative;
-  min-height: 370px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 1rem;
   overflow: hidden;
-  padding: clamp(1.5rem, 5vw, 3rem);
-  border: 1px solid rgb(96 138 191 / 30%);
-  border-radius: 1.5rem;
-  color: var(--color-slate);
-  background:
-    radial-gradient(circle at 90% 8%, rgb(107 33 168 / 9%), transparent 18rem),
-    linear-gradient(130deg, #fff 0%, #f4f8fc 100%);
-  box-shadow: 0 24px 60px rgb(51 65 85 / 13%);
-  transition: transform 200ms ease, box-shadow 200ms ease;
+  padding: 1.5rem 1.25rem 1.5rem 3.25rem;
+  border: 1px solid rgb(124 48 156 / 12%);
+  border-radius: 1.25rem;
+  color: var(--color-card-ink);
+  background: linear-gradient(135deg, var(--color-white) 0%, #fcf9fe 100%);
+  box-shadow: 0 16px 40px rgb(51 65 85 / 10%);
 }
 
-.digital-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 30px 70px rgb(51 65 85 / 17%);
-}
-
-.digital-card::after {
+.digital-card-art {
   position: absolute;
-  right: -4rem;
-  bottom: -8rem;
-  width: 19rem;
-  height: 19rem;
-  border: 1px solid rgb(96 138 191 / 18%);
-  border-radius: 50%;
-  content: "";
+  inset: 0;
   pointer-events: none;
 }
 
-.digital-card-top,
-.digital-card-content,
-.digital-card-links {
+.digital-card-art::before {
+  position: absolute;
+  top: 48%;
+  left: 84%;
+  width: 44%;
+  aspect-ratio: 1;
+  border: 1px solid rgb(124 48 156 / 20%);
+  border-radius: 50%;
+  content: "";
+}
+
+.digital-card-art::after {
+  position: absolute;
+  top: 74%;
+  left: 86%;
+  width: 31%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: linear-gradient(160deg, rgb(197 150 225 / 14%), rgb(197 150 225 / 32%));
+  content: "";
+}
+
+.digital-card-wash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: auto;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: left top;
+  clip-path: inset(0 78% 0 0);
+  -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent);
+  mask-image: linear-gradient(to bottom, #000 78%, transparent);
+}
+
+.digital-card > :not(.digital-card-art) {
   position: relative;
   z-index: 1;
 }
 
-.digital-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.brand-mark-large {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 1rem;
-  font-size: 0.9rem;
-}
-
 .digital-card-label {
-  color: var(--color-muted);
-  font-size: 0.68rem;
-  font-weight: 750;
-  letter-spacing: 0.13em;
-}
-
-.digital-card-content .eyebrow {
-  margin-bottom: 0.65rem;
-}
-
-.digital-card-content h2 {
+  align-self: flex-end;
   margin: 0;
-  color: var(--color-slate);
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  font-weight: 680;
-  letter-spacing: -0.055em;
+  padding-bottom: 0.55rem;
+  border-bottom: 2px solid rgb(124 48 156 / 45%);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
 }
 
-.digital-card-content > p:last-child {
-  margin: 0.5rem 0 0;
-  color: var(--color-muted);
+.digital-card-headline {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 450;
+  line-height: 1.35;
+}
+
+.digital-card-name {
+  margin: 0;
+  line-height: 0;
+}
+
+.digital-card-name img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .digital-card-links {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem 1.5rem;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.digital-card-links li {
+  display: flex;
+  min-width: 0;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--color-card-ink);
+  font-size: 0.9rem;
 }
 
 .digital-card-links a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--color-blue-deep);
-  font-size: 0.9rem;
-  font-weight: 600;
+  display: inline-block;
+  color: inherit;
   text-decoration: none;
 }
 
-.digital-card-links a:hover {
-  color: var(--color-purple);
+.digital-card-links li > a {
+  display: flex;
+  min-height: 2.75rem;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.digital-card-sep {
+  margin-inline: 0.3em;
+  color: var(--color-card-purple);
+}
+
+.digital-card-icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--color-card-purple);
+  background: var(--color-card-lavender);
+  box-shadow: inset 0 0 0 1px rgb(124 48 156 / 12%);
+  font-size: 1.05rem;
+  transition: background-color 150ms ease;
+}
+
+.digital-card-link-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.digital-card-links li:hover .digital-card-icon,
+.digital-card-links li:focus-within .digital-card-icon {
+  background: #e6d6f3;
+}
+
+.digital-card-links a:hover,
+.digital-card-links a:focus-visible {
+  color: var(--color-card-purple);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* Wide cards recreate the landscape reference composition (1302 x 692). */
+@container (min-width: 600px) {
+  .digital-card {
+    display: block;
+    aspect-ratio: 1302 / 692;
+    padding: 0;
+    border-radius: 1.5rem;
+  }
+
+  .digital-card-wash {
+    width: 23.4%;
+    height: 99.3%;
+    clip-path: none;
+  }
+
+  .digital-card > .digital-card-label,
+  .digital-card > .digital-card-headline,
+  .digital-card > .digital-card-name,
+  .digital-card > .digital-card-links {
+    position: absolute;
+  }
+
+  .digital-card > .digital-card-label {
+    top: 7.2%;
+    right: 4.6%;
+    align-self: auto;
+    padding-bottom: 1.4cqw;
+    font-size: max(0.65rem, 1.15cqw);
+  }
+
+  .digital-card-headline {
+    top: 20.5%;
+    left: 20%;
+    width: 59%;
+    font-size: max(0.95rem, 2.2cqw);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .digital-card-name {
+    top: 31.8%;
+    left: 17.7%;
+    width: 68.4%;
+  }
+
+  .digital-card-links {
+    position: absolute;
+    top: 72%;
+    gap: 0;
+  }
+
+  .digital-card-details {
+    left: 11%;
+    width: 28%;
+  }
+
+  .digital-card-online {
+    left: 44.5%;
+    width: 51%;
+  }
+
+  .digital-card-online::before {
+    position: absolute;
+    top: 4%;
+    bottom: 4%;
+    left: -3.6cqw;
+    width: 1px;
+    background: rgb(124 48 156 / 35%);
+    content: "";
+  }
+
+  .digital-card-links li {
+    min-height: max(2.5rem, 4.8cqw);
+  }
+
+  .digital-card-links li,
+  .digital-card-links a {
+    font-size: max(0.8rem, 1.75cqw);
+  }
 }
 
 .card-caption {
@@ -2043,14 +2169,6 @@ p {
   .cv-mobile-preview img {
     height: 100%;
     object-fit: contain;
-  }
-
-  .digital-card {
-    min-height: 340px;
-  }
-
-  .digital-card-links {
-    flex-direction: column;
   }
 
   .certificate-grid,
