@@ -1,7 +1,8 @@
 import avatarVideo from '../../../virtual_avatar_video_home_page/Avatar Video_1080p.mp4?url'
 import { getPublicContactLinks } from '../services/contact-links.js'
+import { applyHomeVideoPoster, DEFAULT_HOME_VIDEO_POSTER } from '../services/home-video-poster.js'
 import { getPublicSiteContent } from '../services/site-content.js'
-import { getPublicSiteAssetUrl, SITE_MEDIA_KEYS } from '../services/storage-urls.js'
+import { getPublicAssetUrl, getPublicSiteAssetUrl, SITE_MEDIA_KEYS } from '../services/storage-urls.js'
 import { mountSite } from '../site.js'
 import { readProfile, renderContactCards, renderHeadline, statusMessage } from './home-content.js'
 
@@ -14,7 +15,7 @@ document.querySelector('#main-content').innerHTML = `
     <p class="hero-role" hidden></p>
     <p class="hero-description" role="status">Loading profile…</p>
     <figure class="avatar-video-card">
-      <video class="avatar-video" controls playsinline preload="metadata" poster="/assets/avatar-poster.svg" aria-label="Introduction video featuring Kristina's virtual avatar">
+      <video class="avatar-video" controls playsinline preload="metadata" poster="${DEFAULT_HOME_VIDEO_POSTER}" aria-label="Introduction video featuring Kristina's virtual avatar">
         <source src="${avatarVideo}" type="video/mp4" />
         Your browser does not support embedded video. You can still explore the CV and contact details below.
       </video>
@@ -102,6 +103,7 @@ const contactList = document.querySelector('#contact-links')
 function renderIntro(siteContent) {
   const { name, headline, introduction } = readProfile(siteContent)
   const avatarVideoUrl = getPublicSiteAssetUrl(siteContent, SITE_MEDIA_KEYS.avatarVideo)
+  applyHomeVideoPoster(video, siteContent, getPublicAssetUrl)
   if (avatarVideoUrl) {
     videoSource.src = avatarVideoUrl
     video.load()

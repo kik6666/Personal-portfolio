@@ -84,6 +84,44 @@ test('creates safe, versioned bucket-relative paths without using user filenames
     }),
     `site-content/avatar/video/${versionId}.mp4`,
   )
+  assert.equal(
+    createPortfolioAssetPath({
+      purpose: PORTFOLIO_ASSET_PURPOSES.avatarVideoPoster,
+      file: { type: 'image/webp', size: 1 },
+      versionId,
+    }),
+    `site-content/avatar/poster/${versionId}.webp`,
+  )
+})
+
+test('Home video poster accepts JPEG, PNG, and WebP under the 50 MiB limit', () => {
+  for (const [type, extension] of [
+    ['image/jpeg', '.jpg'],
+    ['image/png', '.png'],
+    ['image/webp', '.webp'],
+  ]) {
+    assert.equal(
+      validatePortfolioFile(
+        { type, size: PORTFOLIO_ASSET_MAX_BYTES },
+        PORTFOLIO_ASSET_PURPOSES.avatarVideoPoster,
+      ).extension,
+      extension,
+    )
+  }
+  assert.throws(
+    () => validatePortfolioFile(
+      { type: 'video/mp4', size: 1 },
+      PORTFOLIO_ASSET_PURPOSES.avatarVideoPoster,
+    ),
+    { code: 'unsupported-purpose-type' },
+  )
+  assert.throws(
+    () => validatePortfolioFile(
+      { type: 'image/png', size: PORTFOLIO_ASSET_MAX_BYTES + 1 },
+      PORTFOLIO_ASSET_PURPOSES.avatarVideoPoster,
+    ),
+    { code: 'file-too-large' },
+  )
 })
 
 test('rejects unsafe record IDs, version IDs, and storage paths', () => {

@@ -21,6 +21,7 @@ export const PORTFOLIO_ASSET_PURPOSES = Object.freeze({
   cvPreview: 'cv-preview',
   businessCardImage: 'business-card-image',
   avatarVideo: 'avatar-video',
+  avatarVideoPoster: 'avatar-video-poster',
 })
 
 const PURPOSE_SPECS = Object.freeze({
@@ -71,6 +72,12 @@ const PURPOSE_SPECS = Object.freeze({
     recordIdRequired: false,
     slot: 'video',
     mimeTypes: ['video/mp4'],
+  },
+  [PORTFOLIO_ASSET_PURPOSES.avatarVideoPoster]: {
+    prefix: 'site-content/avatar',
+    recordIdRequired: false,
+    slot: 'poster',
+    mimeTypes: IMAGE_MIME_TYPES,
   },
 })
 

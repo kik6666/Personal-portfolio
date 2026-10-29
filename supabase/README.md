@@ -66,6 +66,7 @@ relative to the bucket:
 | `site_content.key` | Media |
 | --- | --- |
 | `avatar_video_path` | Home-page avatar video |
+| `avatar_video_poster_path` | Home-page introduction video poster |
 | `cv_pdf_path` | CV PDF |
 | `cv_preview_image_path` | CV preview image |
 | `business_card_image_path` | Optional business-card artwork |

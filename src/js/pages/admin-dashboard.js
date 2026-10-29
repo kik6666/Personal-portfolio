@@ -8,6 +8,7 @@ import { getPublishedProjects } from '../services/projects.js'
 import { mountAdminCertificates } from './admin-certificates.js'
 import { mountAdminProjects } from './admin-projects.js'
 import { mountAdminSiteContent } from './admin-site-content.js'
+import { mountAdminSiteMedia } from './admin-site-media.js'
 import { mountSite } from '../site.js'
 
 mountSite('admin-login')
@@ -148,9 +149,9 @@ function renderDashboard(user) {
                 <p class="eyebrow">Documents &amp; assets</p>
                 <h2 id="cv-media-title">CV &amp; Media</h2>
               </div>
-              <span class="admin-status-badge admin-status-unavailable">Uploads unavailable</span>
+              <span class="admin-status-badge admin-status-readonly">Media management enabled</span>
             </div>
-            <p>CV and media file replacement or upload actions are not available yet.</p>
+            <div id="admin-site-media-manager"></div>
           </section>
 
           <section id="contact-links" class="admin-dashboard-section admin-management-section" aria-labelledby="contact-links-title">
@@ -175,6 +176,7 @@ function renderDashboard(user) {
   mountAdminProjects(document.querySelector('#admin-projects-manager'))
   mountAdminCertificates(document.querySelector('#admin-certificates-manager'))
   mountAdminSiteContent(document.querySelector('#admin-site-content-manager'))
+  mountAdminSiteMedia(document.querySelector('#admin-site-media-manager'))
 }
 
 function setStatisticsError() {

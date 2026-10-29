@@ -208,7 +208,8 @@ p {
   aspect-ratio: 9 / 16;
   border-radius: 0.85rem;
   background: #e9eef5;
-  object-fit: contain;
+  object-fit: cover;
+  object-position: center;
 }
 
 .video-caption {
@@ -1312,6 +1313,115 @@ p {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.7rem;
+}
+
+.admin-site-media-manager {
+  display: grid;
+  min-width: 0;
+  gap: 1rem;
+}
+
+.admin-site-media-state {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.admin-site-media-state[data-kind="error"] {
+  color: #9f2d2d;
+}
+
+.admin-site-media-card {
+  display: grid;
+  min-width: 0;
+  gap: 0.9rem;
+  padding: clamp(1rem, 2.5vw, 1.4rem);
+  border: 1px solid var(--color-border);
+  border-radius: 0.9rem;
+  background: linear-gradient(145deg, rgb(96 138 191 / 4%), #fff 58%);
+}
+
+.admin-site-media-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-site-media-heading h3 {
+  margin: 0;
+  color: var(--color-slate);
+  font-size: 1.05rem;
+  font-weight: 660;
+}
+
+.admin-site-media-fallback,
+.admin-site-media-path,
+.admin-site-media-feedback {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.admin-site-media-preview {
+  display: flex;
+  min-height: 4rem;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.7rem;
+  background: var(--color-background);
+}
+
+.admin-site-media-image {
+  display: block;
+  width: min(100%, 560px);
+  max-height: 360px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.admin-site-media-video {
+  display: block;
+  width: min(100%, 640px);
+  max-height: 360px;
+  background: #0f172a;
+}
+
+.admin-site-media-controls {
+  display: grid;
+  min-width: 0;
+  gap: 0.5rem;
+}
+
+.admin-site-media-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 0.5rem;
+}
+
+.admin-site-media-error {
+  min-height: 1rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-site-media-selected-file {
+  color: var(--color-muted);
+  overflow-wrap: anywhere;
+}
+
+.admin-site-media-feedback[data-kind="error"] {
+  color: #9f2d2d;
+}
+
+.admin-site-media-feedback[data-kind="warning"] {
+  color: #805500;
 }
 
 .admin-stats-state {
