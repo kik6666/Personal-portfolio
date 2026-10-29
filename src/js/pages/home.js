@@ -21,7 +21,7 @@ document.querySelector('#main-content').innerHTML = `
       </video>
       <figcaption class="video-caption">
         <i class="bi bi-play-circle" aria-hidden="true"></i>
-        A short introduction from my virtual avatar
+        Meet my AI-powered digital avatar
       </figcaption>
       <p class="video-error" role="status" hidden>
         The introduction video could not be loaded. Please use the other sections to learn more.

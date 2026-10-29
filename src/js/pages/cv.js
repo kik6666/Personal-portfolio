@@ -10,10 +10,7 @@ document.querySelector('#main-content').innerHTML = `
   ${pageHeading('Professional profile', 'Curriculum Vitae', 'A closer look at my experience, education, and ongoing development.')}
   <section class="cv-layout" aria-label="CV document">
     <div class="cv-document">
-      <iframe class="cv-pdf" src="${cvPdf}#toolbar=0&amp;navpanes=0&amp;view=FitH" title="Kristina Panovska CV as a PDF"></iframe>
-      <div class="cv-mobile-preview">
-        <img src="${cvPreview}" alt="Preview of Kristina Panovska's CV" />
-      </div>
+      <img class="cv-preview-image" src="${cvPreview}" alt="Full-page preview of Kristina Panovska's CV, including her professional experience and education." />
     </div>
     <div class="cv-actions">
       <a class="btn btn-primary" href="${cvPdf}" target="_blank" rel="noopener noreferrer">
@@ -24,22 +21,13 @@ document.querySelector('#main-content').innerHTML = `
   ${backHomeLink()}
 `
 
-const pdfFrame = document.querySelector('.cv-pdf')
-const pdfPreview = document.querySelector('.cv-mobile-preview img')
+const cvPreviewImage = document.querySelector('.cv-preview-image')
 const previewLink = document.querySelector('.cv-actions a')
 
-function useLocalPdf() {
-  if (pdfFrame.dataset.usingStorage !== 'true') return
-  pdfFrame.dataset.usingStorage = 'false'
-  pdfFrame.src = `${cvPdf}#toolbar=0&navpanes=0&view=FitH`
-  previewLink.href = cvPdf
-}
-
-pdfFrame.addEventListener('error', useLocalPdf)
-pdfPreview.addEventListener('error', () => {
-  if (pdfPreview.dataset.usingStorage !== 'true') return
-  pdfPreview.dataset.usingStorage = 'false'
-  pdfPreview.src = cvPreview
+cvPreviewImage.addEventListener('error', () => {
+  if (cvPreviewImage.dataset.usingStorage !== 'true') return
+  cvPreviewImage.dataset.usingStorage = 'false'
+  cvPreviewImage.src = cvPreview
 })
 
 async function loadCvMedia() {
@@ -49,14 +37,12 @@ async function loadCvMedia() {
     const previewUrl = getPublicSiteAssetUrl(siteContent, SITE_MEDIA_KEYS.cvPreviewImage)
 
     if (pdfUrl) {
-      pdfFrame.dataset.usingStorage = 'true'
-      pdfFrame.src = `${pdfUrl}#toolbar=0&navpanes=0&view=FitH`
       previewLink.href = pdfUrl
     }
 
     if (previewUrl) {
-      pdfPreview.dataset.usingStorage = 'true'
-      pdfPreview.src = previewUrl
+      cvPreviewImage.dataset.usingStorage = 'true'
+      cvPreviewImage.src = previewUrl
     }
   } catch (error) {
     console.error(error)
