@@ -4,10 +4,16 @@ import { businessCardContact, profile } from '../content.js'
 import nameArt from '../../assets/business-card/name.webp'
 import washArt from '../../assets/business-card/wash.webp'
 import { renderHeadline, resolveProfileWithFallback } from './home-content.js'
+import { getPublicContactLinks } from '../services/contact-links.js'
+import { linkedinLabel as toLinkedinLabel, resolveBusinessCardContacts } from '../services/contact-resolver.js'
 
 mountSite('business-card')
 
-const linkedinLabel = profile.linkedinUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')
+const staticContacts = {
+  emails: [businessCardContact.secondaryEmail, profile.email],
+  linkedinUrl: profile.linkedinUrl,
+}
+const linkedinLabel = toLinkedinLabel(profile.linkedinUrl)
 
 document.querySelector('#main-content').innerHTML = `
   ${pageHeading('Stay in touch', 'Business Card', 'A quick way to connect with me professionally.')}
@@ -75,4 +81,25 @@ async function loadPublishedProfile() {
   }
 }
 
+// Updates only the text and href of the existing links; the card markup is unchanged.
+function applyContacts({ emails, linkedinUrl, linkedinLabel: label }) {
+  const emailLinks = document.querySelectorAll('.digital-card-emails a')
+  emails.slice(0, emailLinks.length).forEach((address, index) => {
+    emailLinks[index].href = `mailto:${address}`
+    emailLinks[index].textContent = address
+  })
+  const linkedin = document.querySelector('.digital-card-online li:last-child a')
+  linkedin.href = linkedinUrl
+  linkedin.querySelector('.digital-card-link-text').textContent = label
+}
+
+async function loadPublishedContacts() {
+  try {
+    applyContacts(resolveBusinessCardContacts(await getPublicContactLinks(), staticContacts))
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 loadPublishedProfile()
+loadPublishedContacts()

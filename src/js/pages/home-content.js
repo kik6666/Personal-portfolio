@@ -43,12 +43,13 @@ export function safeContactHref(link) {
   if (!url) return null
 
   if (link.link_type === 'email') {
-    return /^mailto:[^\s]+$/i.test(url) ? url : null
+    return /^mailto:[^\s?#]+@[^\s?#]+\.[^\s?#]+$/i.test(url) ? url : null
   }
 
   try {
     const parsed = new URL(url)
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.href : null
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password) return null
+    return parsed.href
   } catch {
     return null
   }
@@ -118,6 +119,7 @@ export function contactCard(link) {
 
 export function renderContactCards(container, links) {
   const columns = links
+    .filter((link) => link?.is_public !== false)
     .map(contactCard)
     .filter(Boolean)
     .map((card) => {

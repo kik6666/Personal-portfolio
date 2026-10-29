@@ -9,6 +9,7 @@ import { mountAdminCertificates } from './admin-certificates.js'
 import { mountAdminProjects } from './admin-projects.js'
 import { mountAdminSiteContent } from './admin-site-content.js'
 import { mountAdminSiteMedia } from './admin-site-media.js'
+import { mountAdminContactLinks } from './admin-contact-links.js'
 import { mountSite } from '../site.js'
 
 mountSite('admin-login')
@@ -160,9 +161,9 @@ function renderDashboard(user) {
                 <p class="eyebrow">Public contact details</p>
                 <h2 id="contact-links-title">Contact Links</h2>
               </div>
-              <span class="admin-status-badge admin-status-unavailable">Unavailable in this phase</span>
+              <span class="admin-status-badge admin-status-readonly">Management enabled</span>
             </div>
-            <p>Contact link editing is not available yet.</p>
+            <div id="admin-contact-links-manager"></div>
           </section>
         </div>
       </div>
@@ -177,6 +178,7 @@ function renderDashboard(user) {
   mountAdminCertificates(document.querySelector('#admin-certificates-manager'))
   mountAdminSiteContent(document.querySelector('#admin-site-content-manager'))
   mountAdminSiteMedia(document.querySelector('#admin-site-media-manager'))
+  mountAdminContactLinks(document.querySelector('#admin-contact-links-manager'))
 }
 
 function setStatisticsError() {
