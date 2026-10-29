@@ -1,5 +1,5 @@
-import cvPdf from '../../../CV/CV Resume_oct_26.pdf?url'
-import cvPreview from '../../../CV/CV Resume_oct_26.jpg?url'
+import cvPdf from '../../../cv/CV Resume_oct_26.pdf?url'
+import cvPreview from '../../../cv/CV Resume_oct_26.jpg?url'
 import { getPublicSiteContent } from '../services/site-content.js'
 import { getPublicSiteAssetUrl, SITE_MEDIA_KEYS } from '../services/storage-urls.js'
 import { backHomeLink, mountSite, pageHeading } from '../site.js'
