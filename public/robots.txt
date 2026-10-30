@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://personalportfoliokristina.netlify.app/sitemap.xml
